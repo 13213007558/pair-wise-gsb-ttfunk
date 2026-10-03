@@ -32,6 +32,34 @@ module TTFunk
       # @param original [TTFunk::File]
       def initialize(original)
         @original = original
+        @truetype_outline_tolerance = nil
+      end
+
+      # Encode this subset into a binary font representation.
+      #
+      # @param options [Hash]
+      # @option options [Numeric] :truetype_outline_tolerance convert CFF cubic
+      #   outlines to unhinted TrueType quadratic outlines within this many
+      #   font units, including integer coordinate quantization.
+      # @return [String]
+      def encode(options = {})
+        @truetype_outline_tolerance = options[:truetype_outline_tolerance]
+
+        if @truetype_outline_tolerance
+          unless @truetype_outline_tolerance.is_a?(Numeric) &&
+              @truetype_outline_tolerance.to_f.positive? &&
+              @truetype_outline_tolerance.to_f.finite?
+            raise ArgumentError, ':truetype_outline_tolerance must be a positive finite number'
+          end
+
+          unless original.cff.exists?
+            raise ArgumentError, ':truetype_outline_tolerance is only supported for CFF fonts'
+          end
+        end
+
+        encoder_klass.new(original, self, options).encode
+      ensure
+        @truetype_outline_tolerance = nil
       end
 
       # Is this Unicode-based subset?
@@ -56,19 +84,15 @@ module TTFunk
         {}
       end
 
-      # Encode this subset into a binary font representation.
-      #
-      # @param options [Hash]
-      # @return [String]
-      def encode(options = {})
-        encoder_klass.new(original, self, options).encode
-      end
-
       # Encoder class for this subset.
       #
       # @return [TTFunk::TTFEncoder, TTFunk::OTFEncoder]
       def encoder_klass
-        original.cff.exists? ? OTFEncoder : TTFEncoder
+        if original.cff.exists?
+          @truetype_outline_tolerance ? TTFEncoder : OTFEncoder
+        else
+          TTFEncoder
+        end
       end
 
       # Get the first Unicode cmap from the original font.
@@ -151,7 +175,7 @@ module TTFunk
             .cff
             .top_index[0]
             .charstrings_index[glyph_id]
-            .glyph
+            .glyph(@truetype_outline_tolerance)
         else
           original.glyph_outlines.for(glyph_id)
         end

@@ -46,7 +46,7 @@ module TTFunk
       newfont = EncodedString.new
 
       newfont << [
-        original.directory.scaler_type,
+        sfnt_version,
         tables.length,
         search_range,
         entry_selector,
@@ -103,11 +103,24 @@ module TTFunk
     end
 
     def hhea_table
-      @hhea_table = TTFunk::Table::Hhea.encode(original.horizontal_header, hmtx_table, original, new_to_old_glyph)
+      @hhea_table =
+        TTFunk::Table::Hhea.encode(
+          original.horizontal_header,
+          hmtx_table,
+          original,
+          new_to_old_glyph,
+          glyphs,
+        )
     end
 
     def maxp_table
-      @maxp_table ||= TTFunk::Table::Maxp.encode(original.maximum_profile, new_to_old_glyph)
+      @maxp_table ||=
+        TTFunk::Table::Maxp.encode(
+          original.maximum_profile,
+          new_to_old_glyph,
+          glyphs,
+          force_truetype: converting_cff_outlines?,
+        )
     end
 
     def post_table
@@ -119,7 +132,13 @@ module TTFunk
     end
 
     def head_table
-      @head_table ||= TTFunk::Table::Head.encode(original.header, loca_table, new_to_old_glyph)
+      @head_table ||=
+        TTFunk::Table::Head.encode(
+          original.header,
+          loca_table,
+          new_to_old_glyph,
+          glyphs,
+        )
     end
 
     # "optional" tables. Fonts may omit these if they do not need them.
@@ -131,14 +150,20 @@ module TTFunk
     end
 
     def cvt_table
+      return if converting_cff_outlines?
+
       @cvt_table ||= TTFunk::Table::Simple.new(original, 'cvt ').raw
     end
 
     def fpgm_table
+      return if converting_cff_outlines?
+
       @fpgm_table ||= TTFunk::Table::Simple.new(original, 'fpgm').raw
     end
 
     def prep_table
+      return if converting_cff_outlines?
+
       @prep_table ||= TTFunk::Table::Simple.new(original, 'prep').raw
     end
 
@@ -158,10 +183,14 @@ module TTFunk
     end
 
     def vorg_table
+      return if converting_cff_outlines?
+
       @vorg_table ||= TTFunk::Table::Vorg.encode(original.vertical_origins)
     end
 
     def dsig_table
+      return if converting_cff_outlines?
+
       @dsig_table ||= TTFunk::Table::Dsig.encode(original.digital_signature)
     end
 
@@ -213,6 +242,15 @@ module TTFunk
       else
         data
       end
+    end
+
+    def converting_cff_outlines?
+      @converting_cff_outlines ||=
+        original.cff.exists? && options.key?(:truetype_outline_tolerance)
+    end
+
+    def sfnt_version
+      converting_cff_outlines? ? 0x00010000 : original.directory.scaler_type
     end
   end
 end

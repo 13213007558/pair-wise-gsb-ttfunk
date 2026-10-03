@@ -82,14 +82,24 @@ module TTFunk
         # @param maxp [TTFunk::Table::Maxp]
         # @param new2old_glyph [Hash{Integer => Integer}] keys are new glyph IDs, values
         #   are old glyph IDs.
+        # @param glyphs [Hash{Integer => Object}, nil] glyphs keyed by old IDs.
+        # @param force_truetype [Boolean] emit a version 1.0 profile for a
+        #   CFF-to-TrueType conversion.
         # @return [String]
-        def encode(maxp, new2old_glyph)
+        def encode(maxp, new2old_glyph, glyphs = nil, force_truetype: false)
           ''.b.tap do |table|
             num_glyphs = new2old_glyph.length
-            table << [maxp.version, num_glyphs].pack('Nn')
+            version = force_truetype ? 0x10000 : maxp.version
+            table << [version, num_glyphs].pack('Nn')
 
-            if maxp.version == 0x10000
-              stats = stats_for(maxp, glyphs_from_ids(maxp, new2old_glyph.values))
+            if version == 0x10000
+              selected_glyphs =
+                if glyphs
+                  new2old_glyph.values.map { |id| glyphs[id] }.compact
+                else
+                  glyphs_from_ids(maxp, new2old_glyph.values)
+                end
+              stats = stats_for(maxp, selected_glyphs)
 
               table << [
                 stats[:max_points],
@@ -98,12 +108,12 @@ module TTFunk
                 stats[:max_component_contours],
                 # these all come from the fpgm and cvt tables, which
                 # we don't support at the moment
-                maxp.max_zones,
-                maxp.max_twilight_points,
-                maxp.max_storage,
-                maxp.max_function_defs,
-                maxp.max_instruction_defs,
-                maxp.max_stack_elements,
+                force_truetype ? 1 : maxp.max_zones,
+                force_truetype ? 0 : maxp.max_twilight_points,
+                force_truetype ? 0 : maxp.max_storage,
+                force_truetype ? 0 : maxp.max_function_defs,
+                force_truetype ? 0 : maxp.max_instruction_defs,
+                force_truetype ? 0 : maxp.max_stack_elements,
                 stats[:max_size_of_instructions],
                 stats[:max_component_elements],
                 stats[:max_component_depth],

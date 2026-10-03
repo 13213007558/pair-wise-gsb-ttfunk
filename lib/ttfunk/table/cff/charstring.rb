@@ -92,12 +92,20 @@ module TTFunk
 
         # Get a TrueType-compatible glyph representation of this charstring.
         #
+        # @param tolerance [Numeric, nil] maximum total conversion error in
+        #   font units.
+        #
         # @return [TTFunk::Table::Glyf::PathBased]
-        def glyph
+        def glyph(tolerance = nil)
+          if tolerance && @glyph_tolerance != tolerance
+            @glyph_tolerance = tolerance
+            @glyph = nil
+          end
+
           @glyph ||=
             begin
               horizontal_metrics = @top_dict.file.horizontal_metrics.for(glyph_id)
-              Glyf::PathBased.new(path, horizontal_metrics)
+              Glyf::PathBased.new(path, horizontal_metrics, tolerance, glyph_id)
             end
         end
 
