@@ -7,6 +7,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* Format 2 class-based `kern` subtable support
+
+  Format 2 subtables are now parsed and encoded. Kerning queries return the
+  same results as format 0, with left- and right-hand class maps, the
+  implicit class 0 for unlisted glyphs and the two-dimensional value array
+  interpreted together. Multiple subtables are combined according to their
+  direction and override flags; ordinary subtables accumulate and override
+  subtables replace earlier values. Subsetting rebuilds the surviving classes
+  and value matrix instead of copying old byte offsets. Kerning subtable
+  formats other than 0 and 2 now raise
+  `TTFunk::Table::Kern::UnsupportedFormatError` rather than being silently
+  treated as zero kerning.
+
 ### Fixed
 
 * `maxp` table encoding
