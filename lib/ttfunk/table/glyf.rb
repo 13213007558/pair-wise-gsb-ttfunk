@@ -72,5 +72,6 @@ module TTFunk
 end
 
 require_relative 'glyf/compound'
+require_relative 'glyf/outline'
 require_relative 'glyf/path_based'
 require_relative 'glyf/simple'

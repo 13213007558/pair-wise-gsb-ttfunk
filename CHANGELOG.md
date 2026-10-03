@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* Compound glyph outline expansion
+
+  `TTFunk::Table::Glyf::Compound#decompose` and
+  `TTFunk::Table::Glyf::Simple#decompose` return a fully expanded outline:
+  points with on/off-curve flags, contour end points, and effective
+  horizontal metrics. Nested components, 2x2 transformations, x/y
+  displacements, point anchoring, and USE_MY_METRICS are supported.
+
 ### Fixed
 
 * `maxp` table encoding
