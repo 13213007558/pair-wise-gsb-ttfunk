@@ -53,9 +53,9 @@ module TTFunk
 
           @cache[glyph_id] =
             if number_of_contours == -1
-              Compound.new(glyph_id, raw)
+              Compound.new(glyph_id, raw, file)
             else
-              Simple.new(glyph_id, raw)
+              Simple.new(glyph_id, raw, file)
             end
         end
       end
@@ -72,5 +72,6 @@ module TTFunk
 end
 
 require_relative 'glyf/compound'
+require_relative 'glyf/outline'
 require_relative 'glyf/path_based'
 require_relative 'glyf/simple'

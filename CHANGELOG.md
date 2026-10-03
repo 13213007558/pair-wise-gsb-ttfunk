@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* TrueType glyph outline expansion
+
+  Simple and compound glyphs now provide an `expand` method that returns a
+  fully resolved outline (points, contour end points, on-curve flags) along
+  with effective horizontal metrics. Compound expansion supports nested
+  components, 2x2 transformations, x/y offsets (scaled or unscaled per
+  component flags), point-to-point anchoring, and the USE_MY_METRICS flag.
+  Recursive component references and out of range anchor points are reported
+  with the glyph chain.
+
 ### Fixed
 
 * `maxp` table encoding
