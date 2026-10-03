@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* Optional CFF to TrueType outline conversion
+
+  CFF-based OpenType subsets can now be encoded with real `glyf` and `loca`
+  tables by enabling `cff_to_truetype` with a positive tolerance in font units.
+  Cubic Bézier outlines are recursively converted to quadratic outlines, the
+  final integer-coordinate quantization is included in the error bound, and
+  generated glyphs are written without TrueType instructions.
+
 ### Fixed
 
 * `maxp` table encoding

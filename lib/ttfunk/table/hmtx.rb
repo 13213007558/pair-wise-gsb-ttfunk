@@ -26,10 +26,17 @@ module TTFunk
       # @return [Hash{:number_of_metrics => Integer, :table => String}]
       #   * `:number_of_metrics` - number of mertrics is the table.
       #   * `:table` - encoded table.
-      def self.encode(hmtx, mapping)
+      def self.encode(hmtx, mapping, glyphs = nil)
         metrics =
           mapping.keys.sort.map { |new_id|
-            metric = hmtx.for(mapping[new_id])
+            old_id = mapping[new_id]
+            converted_glyph = glyphs&.[](old_id)
+            metric =
+              if converted_glyph.respond_to?(:horizontal_metrics)
+                converted_glyph.horizontal_metrics
+              else
+                hmtx.for(old_id)
+              end
             [metric.advance_width, metric.left_side_bearing]
           }
 

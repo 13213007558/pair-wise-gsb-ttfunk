@@ -82,12 +82,12 @@ module TTFunk
         # @param mapping [Hash{Integer => Integer}] keys are new glyph IDs, values
         #   are old glyph IDs
         # @return [String]
-        def encode(hhea, hmtx, original, mapping)
+        def encode(hhea, hmtx, original, mapping, glyphs = nil)
           ''.b.tap do |table|
             table << [hhea.version].pack('N')
             table << [
               hhea.ascent, hhea.descent, hhea.line_gap,
-              *min_max_values_for(original, mapping),
+              *min_max_values_for(original, mapping, glyphs),
               hhea.caret_slope_rise, hhea.caret_slope_run, hhea.caret_offset,
               0, 0, 0, 0, hhea.metric_data_format, hmtx[:number_of_metrics],
             ].pack('n*')
@@ -96,20 +96,26 @@ module TTFunk
 
         private
 
-        def min_max_values_for(original, mapping)
+        def min_max_values_for(original, mapping, glyphs)
           min_lsb = Min.new
           min_rsb = Min.new
           max_aw = Max.new
           max_extent = Max.new
 
           mapping.each_value do |old_glyph_id|
-            horiz_metrics = original.horizontal_metrics.for(old_glyph_id)
+            glyph = glyphs&.[](old_glyph_id)
+            horiz_metrics =
+              if glyph&.respond_to?(:horizontal_metrics)
+                glyph.horizontal_metrics
+              else
+                original.horizontal_metrics.for(old_glyph_id)
+              end
             next unless horiz_metrics
 
             min_lsb << horiz_metrics.left_side_bearing
             max_aw << horiz_metrics.advance_width
 
-            glyph = original.find_glyph(old_glyph_id)
+            glyph ||= original.find_glyph(old_glyph_id)
             next unless glyph
 
             x_delta = glyph.x_max - glyph.x_min

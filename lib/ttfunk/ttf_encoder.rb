@@ -27,6 +27,11 @@ module TTFunk
     # @param options [Hash]
     # @option options :kerning [Boolean] whether to encode Kerning (`kern`)
     #   table.
+    # @option options :cff_to_truetype [Boolean, Numeric] convert CFF outlines
+    #   to quadratic TrueType outlines. A numeric value supplies the maximum
+    #   error in font units.
+    # @option options :cff_to_truetype_tolerance [Numeric] maximum CFF to
+    #   TrueType conversion error in font units.
     def initialize(original, subset, options = {})
       @original = original
       @subset = subset
@@ -46,7 +51,7 @@ module TTFunk
       newfont = EncodedString.new
 
       newfont << [
-        original.directory.scaler_type,
+        scaler_type,
         tables.length,
         search_range,
         entry_selector,
@@ -78,6 +83,10 @@ module TTFunk
 
     private
 
+    def scaler_type
+      original.directory.scaler_type
+    end
+
     def optimal_table_order
       OPTIMAL_TABLE_ORDER +
         (tables.keys - ['DSIG'] - OPTIMAL_TABLE_ORDER) +
@@ -99,11 +108,18 @@ module TTFunk
     end
 
     def hmtx_table
-      @hmtx_table ||= TTFunk::Table::Hmtx.encode(original.horizontal_metrics, new_to_old_glyph)
+      @hmtx_table ||=
+        TTFunk::Table::Hmtx.encode(
+          original.horizontal_metrics, new_to_old_glyph, glyphs
+        )
     end
 
     def hhea_table
-      @hhea_table = TTFunk::Table::Hhea.encode(original.horizontal_header, hmtx_table, original, new_to_old_glyph)
+      @hhea_table =
+        TTFunk::Table::Hhea.encode(
+          original.horizontal_header, hmtx_table, original,
+          new_to_old_glyph, glyphs
+        )
     end
 
     def maxp_table
@@ -119,7 +135,10 @@ module TTFunk
     end
 
     def head_table
-      @head_table ||= TTFunk::Table::Head.encode(original.header, loca_table, new_to_old_glyph)
+      @head_table ||=
+        TTFunk::Table::Head.encode(
+          original.header, loca_table, new_to_old_glyph, glyphs
+        )
     end
 
     # "optional" tables. Fonts may omit these if they do not need them.

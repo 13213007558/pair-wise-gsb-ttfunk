@@ -112,6 +112,22 @@ module TTFunk
           end
         end
 
+        # Encode an unhinted version 1.0 maxp table for TrueType outlines.
+        def encode_true_type(mapping, glyphs)
+          simple_glyphs = glyphs.values_at(*mapping.values).compact
+          max_points = simple_glyphs.map(&:end_point_of_last_contour).max || 0
+          max_contours = simple_glyphs.map(&:number_of_contours).max || 0
+
+          [
+            0x00010000, mapping.length,
+            max_points, max_contours,
+            0, 0,
+            1, 0, 0, 0, 0, 0,
+            0, 0,
+            DEFAULT_MAX_COMPONENT_DEPTH,
+          ].pack('Nn*')
+        end
+
         private
 
         def glyphs_from_ids(maxp, glyph_ids)

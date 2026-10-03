@@ -97,7 +97,7 @@ module TTFunk
           @glyph ||=
             begin
               horizontal_metrics = @top_dict.file.horizontal_metrics.for(glyph_id)
-              Glyf::PathBased.new(path, horizontal_metrics)
+              Glyf::PathBased.new(path, horizontal_metrics, glyph_id)
             end
         end
 
