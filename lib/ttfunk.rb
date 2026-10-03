@@ -300,6 +300,13 @@ module TTFunk
         end
     end
 
+    # Mathematical typesetting (`MATH`) table
+    #
+    # @return [TTFunk::Table::MathTable, nil]
+    def math
+      @math ||= TTFunk::Table::MathTable.new(self)
+    end
+
     # Find glyph by its index.
     #
     # @return [TTFunk::Table::Cff::Charstring] if it's a CFF-based OpenType font
@@ -324,6 +331,7 @@ require_relative 'ttfunk/table/hhea'
 require_relative 'ttfunk/table/hmtx'
 require_relative 'ttfunk/table/kern'
 require_relative 'ttfunk/table/loca'
+require_relative 'ttfunk/table/math'
 require_relative 'ttfunk/table/maxp'
 require_relative 'ttfunk/table/name'
 require_relative 'ttfunk/table/os2'
