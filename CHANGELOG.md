@@ -7,6 +7,20 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* `kern` table format 2 (class-based kerning) support
+
+  Kerning subtables organized by left/right glyph classes (including the
+  default class of unlisted glyphs) and both Apple class table formats are
+  now parsed, with pair lookups compatible with the existing format 0
+  support. Multiple subtables keep their direction and override flags:
+  values accumulate across non-override subtables and are replaced by
+  override ones. Subsetting reorganizes surviving classes and the value
+  matrix instead of copying stale offsets, and unsupported subtable or
+  class-table formats now raise an error instead of being treated as zero
+  kerning.
+
 ### Fixed
 
 * `maxp` table encoding

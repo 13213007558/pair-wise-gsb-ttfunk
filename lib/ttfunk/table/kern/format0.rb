@@ -21,7 +21,7 @@ module TTFunk
         def initialize(attributes = {})
           @attributes = attributes
 
-          num_pairs, *pairs = attributes.delete(:data).unpack('nx6n*')
+          num_pairs, *pairs = (@attributes[:data] || +'').unpack('nx6n*')
 
           @pairs = {}
           num_pairs.times do |i|
@@ -53,10 +53,35 @@ module TTFunk
           @attributes[:cross]
         end
 
+        # Do later non-override subtables add to this subtable's values?
+        # @return [Boolean]
+        def override?
+          @attributes[:override]
+        end
+
+        # Get the kerning value for the given pair of glyph ids.
+        #
+        # @param left_glyph [Integer]
+        # @param right_glyph [Integer]
+        # @return [Integer]
+        def kerning_for(left_glyph, right_glyph)
+          pairs.fetch([left_glyph, right_glyph], 0)
+        end
+
+        # Get the overriding kerning value, or nil when this subtable does
+        # not list the pair.
+        #
+        # @param left_glyph [Integer]
+        # @param right_glyph [Integer]
+        # @return [Integer, nil]
+        def override_value_for(left_glyph, right_glyph)
+          pairs[[left_glyph, right_glyph]]
+        end
+
         # Recode this subtable using the specified mapping.
         #
-        # @param mapping [Hash{Integer => Integer}] keys are new glyph IDs,
-        #   values are old glyph IDs
+        # @param mapping [Hash{Integer => Integer}] keys are old glyph IDs,
+        #   values are new glyph IDs
         # @return [String]
         def recode(mapping)
           subset = []
@@ -74,7 +99,7 @@ module TTFunk
           range_shift = (2 * num_pairs) - search_range
 
           [
-            attributes[:version],
+            0,
             (num_pairs * 6) + 14,
             attributes[:coverage],
             num_pairs,
