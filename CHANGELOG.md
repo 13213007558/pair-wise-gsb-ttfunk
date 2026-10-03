@@ -7,6 +7,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* WOFF 1.0 container support
+
+  WOFF files can be opened like any other font (`TTFunk::File.open`
+  auto-detects them). Decompressed tables are exposed through the regular
+  font object, so table reading and subsetting work unchanged. Fonts can
+  be written back to WOFF with `TTFunk::WOFFEncoder`; metadata and private
+  data blocks are preserved by default and can be explicitly dropped.
+  Container validation covers directory offsets, compressed/original
+  lengths, checksums, and the total sfnt size, and decompression is
+  subject to a total size limit.
+
 ### Fixed
 
 * `maxp` table encoding

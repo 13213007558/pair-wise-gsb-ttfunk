@@ -29,6 +29,7 @@ require_relative 'ttfunk/one_based_array'
 # * OpenType fonts (otf), with both TrueType and CFF glyph outlines
 # * DFont resources (dfont)
 # * TrueType Collections (ttc)
+# * WOFF 1.0 containers (woff)
 #
 # While not all TrueType and OpenType tables are implemented the most common
 # ones are.
@@ -47,7 +48,21 @@ module TTFunk
     # @return [TTFunk::Directory]
     attr_reader :directory
 
-    # Open font file
+    # WOFF metadata block (XML) if the font was loaded from a WOFF container.
+    # @return [String, nil]
+    attr_accessor :woff_metadata
+
+    # WOFF private data block if the font was loaded from a WOFF container.
+    # @return [String, nil]
+    attr_accessor :woff_private
+
+    # Font version ([major, minor]) as recorded in the WOFF header if the
+    # font was loaded from a WOFF container.
+    # @return [Array(Integer, Integer), nil]
+    attr_accessor :woff_version
+
+    # Open font file. WOFF containers are automatically detected and
+    # decompressed into a regular font object.
     #
     # @overload open(io)
     #   @param io [IO] IO to read font content from. IO position and binmode
@@ -57,7 +72,12 @@ module TTFunk
     #   @param path [String, Pathname] Path to file to read the font from.
     #   @return [TTFunk::File]
     def self.open(io_or_path)
-      new(verify_and_read(io_or_path))
+      contents = verify_and_read(io_or_path)
+      if WOFF.woff?(contents)
+        WOFF.decode(contents)
+      else
+        new(contents)
+      end
     end
 
     # Load a font from a resource file.
@@ -330,3 +350,6 @@ require_relative 'ttfunk/table/os2'
 require_relative 'ttfunk/table/post'
 require_relative 'ttfunk/table/sbix'
 require_relative 'ttfunk/table/vorg'
+
+require_relative 'ttfunk/woff'
+require_relative 'ttfunk/woff_encoder'
