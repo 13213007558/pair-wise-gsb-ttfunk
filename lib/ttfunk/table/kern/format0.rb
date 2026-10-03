@@ -69,8 +69,8 @@ module TTFunk
           return if subset.empty?
 
           num_pairs = subset.length
-          search_range = 2 * (2**Integer(Math.log(num_pairs) / Math.log(2)))
-          entry_selector = Integer(Math.log(search_range / 2) / Math.log(2))
+          search_range = 2 * (2**Integer(::Math.log(num_pairs) / ::Math.log(2)))
+          entry_selector = Integer(::Math.log(search_range / 2) / ::Math.log(2))
           range_shift = (2 * num_pairs) - search_range
 
           [

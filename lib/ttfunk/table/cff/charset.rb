@@ -163,7 +163,7 @@ module TTFunk
 
           range_bytes =
             if range_max.positive?
-              (Math.log2(range_max) / 8).floor + 1
+              (::Math.log2(range_max) / 8).floor + 1
             else
               # for cases when there are no sequences at all
               Float::INFINITY

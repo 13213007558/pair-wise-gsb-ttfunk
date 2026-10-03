@@ -290,6 +290,16 @@ module TTFunk
         end
     end
 
+    # Mathematical typesetting (`MATH`) table
+    #
+    # @return [TTFunk::Table::Math, nil]
+    def math
+      @math ||=
+        if directory.tables.include?(TTFunk::Table::Math::TAG)
+          TTFunk::Table::Math.new(self)
+        end
+    end
+
     # Digital Signature (`DSIG`) table
     #
     # @return [TTFunk::Table::Dsig, nil]
@@ -324,6 +334,7 @@ require_relative 'ttfunk/table/hhea'
 require_relative 'ttfunk/table/hmtx'
 require_relative 'ttfunk/table/kern'
 require_relative 'ttfunk/table/loca'
+require_relative 'ttfunk/table/math'
 require_relative 'ttfunk/table/maxp'
 require_relative 'ttfunk/table/name'
 require_relative 'ttfunk/table/os2'
