@@ -108,6 +108,19 @@ describe TTFunk::File do
         expect(cmap_format4.format).to eq(4)
         expect(cmap_format4[32]).to eq(4)
       end
+
+      it 'extracts the cmap format 14 table' do
+        uvs = file.cmap.uvs
+        expect(uvs).not_to be_nil
+        expect(uvs.selectors).to eq([0xE0100, 0xE0101, 0xE0102, 0xE0103])
+      end
+
+      it 'looks up variation sequences in cmap format 14 table' do
+        uvs = file.cmap.uvs
+        expect(uvs[0x7259, 0xE0100]).to eq(:default)
+        expect(uvs[0x7259, 0xE0101]).to eq(268)
+        expect(uvs[0x7259, 0xE0104]).to be_nil
+      end
     end
   end
 

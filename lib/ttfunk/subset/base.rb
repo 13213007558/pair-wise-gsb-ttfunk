@@ -115,25 +115,7 @@ module TTFunk
       #
       # @return [Hash{Integer => Integer}]
       def old_to_new_glyph
-        @old_to_new_glyph ||=
-          begin
-            charmap = new_cmap_table[:charmap]
-            old_to_new =
-              charmap.each_with_object(0 => 0) do |(_, ids), map|
-                map[ids[:old]] = ids[:new]
-              end
-
-            next_glyph_id = new_cmap_table[:max_glyph_id]
-
-            glyphs.each_key do |old_id|
-              unless old_to_new.key?(old_id)
-                old_to_new[old_id] = next_glyph_id
-                next_glyph_id += 1
-              end
-            end
-
-            old_to_new
-          end
+        @old_to_new_glyph ||= compute_old_to_new_glyph(new_cmap_table)
       end
 
       # Glyph ID mapping from this subset to the original font.
@@ -144,6 +126,30 @@ module TTFunk
       end
 
       private
+
+      # Compute glyph ID mapping from the original font to this subset based
+      # on the given cmap table.
+      #
+      # @param cmap_table [Hash] result of TTFunk::Table::Cmap.encode
+      # @return [Hash{Integer => Integer}]
+      def compute_old_to_new_glyph(cmap_table)
+        charmap = cmap_table[:charmap]
+        old_to_new =
+          charmap.each_with_object(0 => 0) do |(_, ids), map|
+            map[ids[:old]] = ids[:new]
+          end
+
+        next_glyph_id = cmap_table[:max_glyph_id]
+
+        glyphs.each_key do |old_id|
+          unless old_to_new.key?(old_id)
+            old_to_new[old_id] = next_glyph_id
+            next_glyph_id += 1
+          end
+        end
+
+        old_to_new
+      end
 
       def glyph_for(glyph_id)
         if original.cff.exists?

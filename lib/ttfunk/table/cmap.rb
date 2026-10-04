@@ -32,6 +32,32 @@ module TTFunk
         result
       end
 
+      # Add a Unicode Variation Sequences (format 14) subtable to an encoded
+      # table.
+      #
+      # @param table [String] serialized table as returned by {.encode}.
+      # @param uvs [String] serialized format 14 subtable as returned by
+      #   {TTFunk::Table::Cmap::Format14.encode}.
+      # @return [String] serialized table with the additional encoding record.
+      def self.encode_with_uvs(table, uvs)
+        version, count = table.unpack('nn')
+        data_start = 4 + (count * 8)
+        data = table[data_start..]
+
+        records =
+          Array.new(count) do |i|
+            platform_id, encoding_id, offset =
+              table[4 + (i * 8), 8].unpack('nnN')
+            [platform_id, encoding_id, offset + 8]
+          end
+        records << [0, 5, data_start + 8 + data.length]
+
+        [version, count + 1].pack('nn') +
+          records.map { |record| record.pack('nnN') }.join +
+          data +
+          uvs
+      end
+
       # Get Unicode encoding records.
       #
       # @return [Array<TTFunk::Table::Cmap::Subtable>]
@@ -42,6 +68,14 @@ module TTFunk
           @tables
             .select { |table| table.unicode? && table.supported? }
             .sort { |a, b| b.format <=> a.format }
+      end
+
+      # Get the Unicode Variation Sequences (format 14) encoding record.
+      #
+      # @return [TTFunk::Table::Cmap::Subtable, nil]
+      def uvs
+        @uvs ||=
+          @tables.find { |table| table.format == 14 && table.supported? }
       end
 
       private

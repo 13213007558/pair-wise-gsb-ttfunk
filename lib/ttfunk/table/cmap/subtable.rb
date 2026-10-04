@@ -13,6 +13,7 @@ module TTFunk
       # @see TTFunk::Table::Cmap::Format06
       # @see TTFunk::Table::Cmap::Format10
       # @see TTFunk::Table::Cmap::Format12
+      # @see TTFunk::Table::Cmap::Format14
       class Subtable
         include Reader
 
@@ -97,6 +98,7 @@ module TTFunk
             when 6 then extend(TTFunk::Table::Cmap::Format06)
             when 10 then extend(TTFunk::Table::Cmap::Format10)
             when 12 then extend(TTFunk::Table::Cmap::Format12)
+            when 14 then extend(TTFunk::Table::Cmap::Format14)
             end
 
             parse_cmap!
@@ -107,8 +109,9 @@ module TTFunk
         #
         # @return [Boolean]
         def unicode?
-          (platform_id == 3 && [1, 10].include?(encoding_id) && format != 0) ||
-            (platform_id.zero? && format != 0)
+          format != 14 &&
+            ((platform_id == 3 && [1, 10].include?(encoding_id) && format != 0) ||
+              (platform_id.zero? && format != 0))
         end
 
         # Is this encoding record format supported?
@@ -141,3 +144,4 @@ require_relative 'format04'
 require_relative 'format06'
 require_relative 'format10'
 require_relative 'format12'
+require_relative 'format14'
