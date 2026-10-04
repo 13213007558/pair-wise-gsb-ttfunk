@@ -12,6 +12,9 @@ module TTFunk
         # Flags bit 0: arg1 and arg2 are words.
         ARG_1_AND_2_ARE_WORDS = 0x0001
 
+        # Flags bit 1: arguments are offsets rather than point numbers.
+        ARGS_ARE_XY_VALUES = 0x0002
+
         # Flags bit 3: there is a simple scale for the component.
         WE_HAVE_A_SCALE = 0x0008
 
@@ -61,6 +64,10 @@ module TTFunk
         # IDs of compound glyphs.
         attr_reader :glyph_ids
 
+        # Parsed components.
+        # @return [Array<Component>]
+        attr_reader :components
+
         # Component glyph.
         #
         # @!attribute [rw] flags
@@ -103,30 +110,34 @@ module TTFunk
 
           @glyph_ids = []
           @glyph_id_offsets = []
+          @components = []
           offset = 10 # 2 bytes for each of num-contours, min x/y, max x/y
 
           loop do
             flags, glyph_id = @raw[offset, 4].unpack('n*')
             @glyph_ids << glyph_id
             @glyph_id_offsets << (offset + 2)
+            arg1_offset = offset + 4
+            arg2_offset = arg1_offset + (flags.allbits?(ARG_1_AND_2_ARE_WORDS) ? 2 : 1)
+
+            arg1 = read_argument(arg1_offset, flags)
+            arg2 = read_argument(arg2_offset, flags)
+            transform_offset = arg2_offset + (flags.allbits?(ARG_1_AND_2_ARE_WORDS) ? 2 : 1)
+            transform = read_transform(transform_offset, flags)
+            @components << Component.new(
+              flags, glyph_id, arg1, arg2, transform,
+            )
 
             break if flags.nobits?(MORE_COMPONENTS)
 
-            offset += 4
-
-            offset +=
-              if flags.nobits?(ARG_1_AND_2_ARE_WORDS)
-                2
-              else
-                4
-              end
-
             if flags.allbits?(WE_HAVE_A_TWO_BY_TWO)
-              offset += 8
+              offset = transform_offset + 8
             elsif flags.allbits?(WE_HAVE_AN_X_AND_Y_SCALE)
-              offset += 4
+              offset = transform_offset + 4
             elsif flags.allbits?(WE_HAVE_A_SCALE)
-              offset += 2
+              offset = transform_offset + 2
+            else
+              offset = transform_offset
             end
           end
         end
@@ -151,6 +162,73 @@ module TTFunk
           end
 
           result
+        end
+
+        # Whether component arguments are numeric offsets.
+        # @return [Boolean]
+        def xy_arguments?
+          components.any? { |component| component.flags.allbits?(ARGS_ARE_XY_VALUES) }
+        end
+
+        # Encode the compound after applying gvar component translations.
+        #
+        # @param component_deltas [Hash{Integer => Array(Integer, Integer)}]
+        # @return [String]
+        def encode_with_component_deltas(component_deltas)
+          result = raw.dup
+
+          components.each do |component|
+            delta_x, delta_y = component_deltas.fetch(component.glyph_index, [0, 0])
+            next if delta_x.zero? && delta_y.zero?
+            unless component.flags.allbits?(ARGS_ARE_XY_VALUES)
+              raise TTFunk::Error, 'point-number component gvar deltas are not supported'
+            end
+
+            replace_argument(result, component, delta_x, delta_y)
+          end
+
+          result
+        end
+
+        private
+
+        def read_argument(position, flags)
+          if flags.allbits?(ARG_1_AND_2_ARE_WORDS)
+            BinUtils.twos_comp_to_int(raw[position, 2].unpack1('n'), bit_width: 16)
+          else
+            value = raw[position].unpack1('C')
+            value >= 0x80 ? value - 0x100 : value
+          end
+        end
+
+        def read_transform(position, flags)
+          if flags.allbits?(WE_HAVE_A_TWO_BY_TWO)
+            raw[position, 8].unpack('n*').map { |value| fixed2x14(value) }
+          elsif flags.allbits?(WE_HAVE_AN_X_AND_Y_SCALE)
+            [fixed2x14(raw[position, 2].unpack1('n')), 0, 0,
+             fixed2x14(raw[position + 2, 2].unpack1('n'))]
+          elsif flags.allbits?(WE_HAVE_A_SCALE)
+            scale = fixed2x14(raw[position, 2].unpack1('n'))
+            [scale, 0, 0, scale]
+          else
+            [Rational(1), 0, 0, Rational(1)]
+          end
+        end
+
+        def fixed2x14(value)
+          Rational(BinUtils.twos_comp_to_int(value, bit_width: 16), 0x4000)
+        end
+
+        def replace_argument(result, component, delta_x, delta_y)
+          flags = component.flags
+          flags |= ARG_1_AND_2_ARE_WORDS
+          # Replacing variable-width arguments in place is not possible here.
+          raise TTFunk::Error, 'byte component deltas are not supported' unless component.flags.allbits?(ARG_1_AND_2_ARE_WORDS)
+
+          component_position = @glyph_id_offsets[components.index(component)] - 2
+          result[component_position, 2] = [flags].pack('n')
+          arg1_offset = component_position + 4
+          result[arg1_offset, 4] = [component.arg1 + delta_x, component.arg2 + delta_y].pack('s>2')
         end
       end
     end

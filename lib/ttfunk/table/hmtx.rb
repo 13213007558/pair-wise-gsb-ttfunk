@@ -39,6 +39,27 @@ module TTFunk
         }
       end
 
+      # Encode a complete set of static metrics.
+      #
+      # @param metrics [Array<HorizontalMetric>]
+      # @return [Hash{:number_of_metrics => Integer, :table => String}]
+      def self.encode_metrics(metrics)
+        final_advance = metrics.last.advance_width
+        number_of_metrics = metrics.length
+        number_of_metrics -= 1 while number_of_metrics > 1 &&
+          metrics[number_of_metrics - 2].advance_width == final_advance
+
+        table = +''
+        metrics.first(number_of_metrics).each do |metric|
+          table << [metric.advance_width, metric.left_side_bearing].pack('ns>')
+        end
+        metrics[number_of_metrics..].each do |metric|
+          table << [metric.left_side_bearing].pack('s>')
+        end
+
+        { number_of_metrics: number_of_metrics, table: table }
+      end
+
       # Horyzontal glyph metric.
       #
       # @!attribute [rw] advance_width

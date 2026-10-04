@@ -312,16 +312,72 @@ module TTFunk
         glyph_outlines.for(glyph_id)
       end
     end
+
+    # Font Variations (`fvar`) table.
+    #
+    # @return [TTFunk::Table::Fvar, nil]
+    def font_variations
+      @font_variations ||=
+        if directory.tables.include?('fvar')
+          TTFunk::Table::Fvar.new(self)
+        end
+    end
+
+    # Axis Variations (`avar`) table.
+    #
+    # @return [TTFunk::Table::Avar, nil]
+    def axis_variations
+      @axis_variations ||=
+        if directory.tables.include?('avar')
+          TTFunk::Table::Avar.new(self)
+        end
+    end
+
+    # Glyph Variations (`gvar`) table.
+    #
+    # @return [TTFunk::Table::Gvar, nil]
+    def glyph_variations
+      @glyph_variations ||=
+        if directory.tables.include?('gvar')
+          TTFunk::Table::Gvar.new(self)
+        end
+    end
+
+    # Horizontal Metrics Variations (`HVAR`) table.
+    #
+    # @return [TTFunk::Table::Hvar, nil]
+    def horizontal_metrics_variations
+      @horizontal_metrics_variations ||=
+        if directory.tables.include?('HVAR')
+          TTFunk::Table::Hvar.new(self)
+        end
+    end
+
+    # Instantiate this variable font at a user-space axis location.
+    #
+    # Coordinates for omitted axes use the `fvar` default values. Validation
+    # and unsupported-format checks run before encoding starts, so a failure
+    # never emits a partial font.
+    #
+    # @param coordinates [Hash{String, Symbol => Numeric}]
+    # @return [String] binary TrueType font
+    def instantiate_variable_font(coordinates)
+      TTFunk::VariableFontInstantiator.new(self, coordinates).encode
+    end
   end
 end
 
 require_relative 'ttfunk/table/cff'
+require_relative 'ttfunk/table/avar'
 require_relative 'ttfunk/table/cmap'
 require_relative 'ttfunk/table/dsig'
+require_relative 'ttfunk/table/fvar'
 require_relative 'ttfunk/table/glyf'
+require_relative 'ttfunk/table/gvar'
 require_relative 'ttfunk/table/head'
 require_relative 'ttfunk/table/hhea'
 require_relative 'ttfunk/table/hmtx'
+require_relative 'ttfunk/table/hvar'
 require_relative 'ttfunk/table/kern'
 require_relative 'ttfunk/table/loca'
 require_relative 'ttfunk/table/maxp'
@@ -330,3 +386,5 @@ require_relative 'ttfunk/table/os2'
 require_relative 'ttfunk/table/post'
 require_relative 'ttfunk/table/sbix'
 require_relative 'ttfunk/table/vorg'
+require_relative 'ttfunk/variable_font_instantiator'
+require_relative 'ttfunk/static_font_encoder'
