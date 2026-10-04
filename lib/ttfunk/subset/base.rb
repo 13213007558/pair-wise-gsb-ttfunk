@@ -111,19 +111,33 @@ module TTFunk
         collected
       end
 
+      # Character map of the new 'cmap' table.
+      #
+      # @return [Hash{Integer => Hash}]
+      def new_cmap_charmap
+        new_cmap_table[:charmap]
+      end
+
+      # First glyph ID after the ones assigned by the new 'cmap' table.
+      #
+      # @return [Integer]
+      def new_cmap_max_glyph_id
+        new_cmap_table[:max_glyph_id]
+      end
+
       # Glyph ID mapping from the original font to this subset.
       #
       # @return [Hash{Integer => Integer}]
       def old_to_new_glyph
         @old_to_new_glyph ||=
           begin
-            charmap = new_cmap_table[:charmap]
+            charmap = new_cmap_charmap
             old_to_new =
               charmap.each_with_object(0 => 0) do |(_, ids), map|
                 map[ids[:old]] = ids[:new]
               end
 
-            next_glyph_id = new_cmap_table[:max_glyph_id]
+            next_glyph_id = new_cmap_max_glyph_id
 
             glyphs.each_key do |old_id|
               unless old_to_new.key?(old_id)

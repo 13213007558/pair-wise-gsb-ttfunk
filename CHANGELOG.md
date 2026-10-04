@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* Unicode Variation Sequences support
+
+  Added parsing of `cmap` format 14 (Unicode Variation Sequences) subtables.
+  Unicode subsets can now include variation sequences by passing a variation
+  selector along with the codepoint to `TTFunk::Subset::Unicode#use`. The
+  subset font retains only the requested variation sequences in its format 14
+  subtable with consistently renumbered glyph IDs.
+
 ### Fixed
 
 * `maxp` table encoding

@@ -16,6 +16,10 @@ module TTFunk
       #
       # @param charmap [Hash{Integer => Integer}]
       # @param encoding [Symbol]
+      # @param uvs [Hash{Integer => Hash}, nil] Unicode Variation Sequences to
+      #   include in the table as a format 14 subtable. Keys are variation
+      #   selector code points, values are hashes as expected by
+      #   {TTFunk::Table::Cmap::Format14.encode}.
       # @return [Hash]
       #   * `:charmap` (<tt>Hash{Integer => Hash}</tt>) keys are the characrers in
       #     `charset`, values are hashes:
@@ -24,12 +28,41 @@ module TTFunk
       #     that maps the characters in charmap to a
       #   * `:table` (<tt>String</tt>) - serialized table.
       #   * `:max_glyph_id` (<tt>Integer</tt>) - maximum glyph ID in the new font.
-      def self.encode(charmap, encoding)
+      def self.encode(charmap, encoding, uvs: nil)
         result = Cmap::Subtable.encode(charmap, encoding)
 
+        subtables = [
+          [result[:platform_id], result[:encoding_id], result.delete(:subtable)],
+        ]
+
+        if uvs && !uvs.empty?
+          subtables << [
+            Cmap::Subtable::UVS_ENCODING[:platform_id],
+            Cmap::Subtable::UVS_ENCODING[:encoding_id],
+            Cmap::Format14.encode(uvs)[:subtable],
+          ]
+        end
+
         # pack 'version' and 'table-count'
-        result[:table] = [0, 1, result.delete(:subtable)].pack('nnA*')
+        table = [0, subtables.length].pack('n2')
+
+        offset = 4 + (8 * subtables.length)
+        subtables.each do |platform_id, encoding_id, subtable|
+          table << [platform_id, encoding_id, offset].pack('nnN')
+          offset += subtable.length
+        end
+        subtables.each { |(_, _, subtable)| table << subtable }
+
+        result[:table] = table
         result
+      end
+
+      # Get Unicode Variation Sequences encoding records.
+      #
+      # @return [Array<TTFunk::Table::Cmap::Subtable>]
+      def uvs
+        @uvs ||=
+          @tables.select { |table| table.format == 14 && table.supported? }
       end
 
       # Get Unicode encoding records.

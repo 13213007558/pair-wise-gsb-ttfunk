@@ -37,6 +37,9 @@ module TTFunk
           unicode_ucs4: { platform_id: 3, encoding_id: 10 }.freeze,
         }.freeze
 
+        # Unicode Variation Sequences encoding mapping.
+        UVS_ENCODING = { platform_id: 0, encoding_id: 5 }.freeze
+
         # Encode encoding record.
         #
         # @param charmap [Hash{Integer => Integer}] keys are code points in the
@@ -46,7 +49,8 @@ module TTFunk
         # @return [Hash]
         #   * `:platform_id` (<tt>Integer</tt>) - Platform ID of this encoding record.
         #   * `:encoding_id` (<tt>Integer</tt>) - Encodign ID of this encoding record.
-        #   * `:subtable` (<tt>String</tt>) - encoded encoding record.
+        #   * `:subtable` (<tt>String</tt>) - serialized subtable (without the
+        #     encoding record header).
         #   * `:max_glyph_id` (<tt>Integer</tt>) - maximum glyph ID in this encoding
         #     record.
         #   * `:charmap` (<tt>Hash{Integer => Hash}</tt>) - keys are codepoints in this
@@ -68,16 +72,9 @@ module TTFunk
 
           mapping = ENCODING_MAPPINGS[encoding]
 
-          # platform-id, encoding-id, offset
           result.merge(
             platform_id: mapping[:platform_id],
             encoding_id: mapping[:encoding_id],
-            subtable: [
-              mapping[:platform_id],
-              mapping[:encoding_id],
-              12,
-              result[:subtable],
-            ].pack('nnNA*'),
           )
         end
 
@@ -97,6 +94,7 @@ module TTFunk
             when 6 then extend(TTFunk::Table::Cmap::Format06)
             when 10 then extend(TTFunk::Table::Cmap::Format10)
             when 12 then extend(TTFunk::Table::Cmap::Format12)
+            when 14 then extend(TTFunk::Table::Cmap::Format14)
             end
 
             parse_cmap!
@@ -141,3 +139,4 @@ require_relative 'format04'
 require_relative 'format06'
 require_relative 'format10'
 require_relative 'format12'
+require_relative 'format14'
