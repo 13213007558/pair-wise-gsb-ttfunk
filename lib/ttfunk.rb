@@ -312,6 +312,51 @@ module TTFunk
         glyph_outlines.for(glyph_id)
       end
     end
+
+    # Font Variations (`fvar`) table.
+    #
+    # @return [TTFunk::Table::Fvar]
+    def font_variations
+      @font_variations ||= TTFunk::Table::Fvar.new(self)
+    end
+
+    # Axis Variations (`avar`) table.
+    #
+    # @return [TTFunk::Table::Avar]
+    def axis_variations
+      @axis_variations ||= TTFunk::Table::Avar.new(self)
+    end
+
+    # Glyph Variations (`gvar`) table.
+    #
+    # @return [TTFunk::Table::Gvar]
+    def glyph_variations
+      @glyph_variations ||= TTFunk::Table::Gvar.new(self)
+    end
+
+    # Horizontal Metrics Variations (`HVAR`) table.
+    #
+    # @return [TTFunk::Table::Hvar]
+    def horizontal_metrics_variations
+      @horizontal_metrics_variations ||= TTFunk::Table::Hvar.new(self)
+    end
+
+    # Build a static TrueType instance for the supplied variation axes.
+    #
+    # Coordinates are given in user space (the values declared by `fvar`),
+    # e.g. `{ 'wght' => 700, 'wdth' => 75 }`. Values outside an axis range
+    # are clamped to that range, and missing axes use their default values.
+    # Coordinates are normalized and remapped through `avar` before they are
+    # applied to `gvar`.
+    #
+    # Only the TrueType `glyf`/`gvar` route is supported; CFF2 variable
+    # fonts raise {TTFunk::Error} before any output is produced.
+    #
+    # @param coordinates [Hash{String, Symbol => Numeric}]
+    # @return [String] binary static TrueType font
+    def instantiate(coordinates = {})
+      Variation::Instantiator.new(self, coordinates).encode
+    end
   end
 end
 
@@ -330,3 +375,8 @@ require_relative 'ttfunk/table/os2'
 require_relative 'ttfunk/table/post'
 require_relative 'ttfunk/table/sbix'
 require_relative 'ttfunk/table/vorg'
+require_relative 'ttfunk/table/fvar'
+require_relative 'ttfunk/table/avar'
+require_relative 'ttfunk/table/gvar'
+require_relative 'ttfunk/table/hvar'
+require_relative 'ttfunk/variation/instantiator'

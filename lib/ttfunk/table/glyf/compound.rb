@@ -12,6 +12,10 @@ module TTFunk
         # Flags bit 0: arg1 and arg2 are words.
         ARG_1_AND_2_ARE_WORDS = 0x0001
 
+        # Flags bit 1: arg1 and arg2 are signed x/y placement values rather
+        # than matched point numbers.
+        ARGS_ARE_XY_VALUES = 0x0002
+
         # Flags bit 3: there is a simple scale for the component.
         WE_HAVE_A_SCALE = 0x0008
 
