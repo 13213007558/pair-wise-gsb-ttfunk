@@ -176,13 +176,16 @@ module TTFunk
 
           # @length must be set via the constructor
           while io.pos < table_offset + length
+            next_byte_position = io.pos
+            break if next_byte_position == table_offset + length
+
             case b_zero = read(1, 'C').first
             when WIDE_OPERATOR_BZERO
               operator = decode_wide_operator
               @dict[operator] = operands
               operands = []
-            when OPERATOR_BZERO
-              @dict[b_zero] = operands unless operands.empty?
+            when *operator_ranges
+              @dict[b_zero] = operands
               operands = []
             when *OPERAND_BZERO
               operands << decode_operand(b_zero)
@@ -201,8 +204,14 @@ module TTFunk
           WIDE_OPERATOR_ADJUSTMENT + read(1, 'C').first
         end
 
+        def operator_ranges
+          [OPERATOR_BZERO]
+        end
+
         def decode_operand(b_zero)
           case b_zero
+          when 29
+            decode_integer(b_zero)
           when 30
             decode_sci
           else

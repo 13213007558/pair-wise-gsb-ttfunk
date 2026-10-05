@@ -273,11 +273,25 @@ module TTFunk
       @sbix ||= TTFunk::Table::Sbix.new(self)
     end
 
+    # Font Variations (`fvar`) table
+    #
+    # @return [TTFunk::Table::Fvar, nil]
+    def fvar
+      @fvar ||= TTFunk::Table::Fvar.new(self)
+    end
+
     # Compact Font Format (`CFF `) table
     #
     # @return [Table::Table::Cff, nil]
     def cff
       @cff ||= TTFunk::Table::Cff.new(self)
+    end
+
+    # Compact Font Format 2 (`CFF2`) table
+    #
+    # @return [TTFunk::Table::Cff2, nil]
+    def cff2
+      @cff2 ||= TTFunk::Table::Cff2.new(self)
     end
 
     # Vertical Origin (`VORG`) table
@@ -308,6 +322,8 @@ module TTFunk
     def find_glyph(glyph_id)
       if cff.exists?
         cff.top_index[0].charstrings_index[glyph_id].glyph
+      elsif cff2.exists?
+        cff2.top_dict.charstrings_index[glyph_id].path
       else
         glyph_outlines.for(glyph_id)
       end
@@ -318,6 +334,7 @@ end
 require_relative 'ttfunk/table/cff'
 require_relative 'ttfunk/table/cmap'
 require_relative 'ttfunk/table/dsig'
+require_relative 'ttfunk/table/fvar'
 require_relative 'ttfunk/table/glyf'
 require_relative 'ttfunk/table/head'
 require_relative 'ttfunk/table/hhea'
@@ -330,3 +347,4 @@ require_relative 'ttfunk/table/os2'
 require_relative 'ttfunk/table/post'
 require_relative 'ttfunk/table/sbix'
 require_relative 'ttfunk/table/vorg'
+require_relative 'ttfunk/table/cff2'

@@ -123,7 +123,9 @@ module TTFunk
             code = @data[@index]
             @index += 1
 
-            # return from callgsubr - do nothing since we inline subrs
+            # CFF2 restores the calling charstring on code 11; CFF1 inlines
+            # subroutines and treats code 11 as a no-op.
+            next if code == 11 && return_from_charstring_subroutine
             next if code == 11
 
             if code.between?(32, 246)
@@ -246,6 +248,10 @@ module TTFunk
           @data[@index, 0] = subr_code
         end
 
+        def return_from_charstring_subroutine
+          false
+        end
+
         def flex_select
           flex_code = @data[@index]
           @index += 1
@@ -337,6 +343,8 @@ module TTFunk
             @path.close_path
             @open = false
           end
+
+          true
         end
 
         def hstemhm
