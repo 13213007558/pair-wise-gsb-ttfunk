@@ -6,6 +6,10 @@
 TTFunk is a TrueType and OpenType font library written in pure ruby. It supports
 both parsing and encoding of fonts. Also provides limited font subsetting.
 
+WOFF 1 fonts are accepted by the same `TTFunk::File.open` entry point. TTFunk
+restores their internal SFNT tables for reading and subsetting; WOFF 2 is not
+supported.
+
 ## Installation
 
 The recommended installation method is via Rubygems.

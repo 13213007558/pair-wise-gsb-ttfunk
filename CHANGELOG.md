@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* Read WOFF 1 fonts
+
+  WOFF 1 containers can now be opened directly with `TTFunk::File.open`. Tables
+  are restored to an internal SFNT view, so reading and subsetting work without
+  an external font tool. Metadata and private blocks remain available through
+  the source container and are not treated as font tables.
+
 ### Fixed
 
 * `maxp` table encoding

@@ -7,6 +7,7 @@ require_relative 'ttfunk/aggregate'
 require_relative 'ttfunk/directory'
 require_relative 'ttfunk/resource_file'
 require_relative 'ttfunk/collection'
+require_relative 'ttfunk/woff'
 require_relative 'ttfunk/ttf_encoder'
 require_relative 'ttfunk/encoded_string'
 require_relative 'ttfunk/placeholder'
@@ -47,6 +48,10 @@ module TTFunk
     # @return [TTFunk::Directory]
     attr_reader :directory
 
+    # Source WOFF 1 container, if this font was restored from one.
+    # @return [TTFunk::WOFF, nil]
+    attr_reader :woff
+
     # Open font file
     #
     # @overload open(io)
@@ -57,7 +62,27 @@ module TTFunk
     #   @param path [String, Pathname] Path to file to read the font from.
     #   @return [TTFunk::File]
     def self.open(io_or_path)
-      new(verify_and_read(io_or_path))
+      contents = verify_and_read(io_or_path)
+
+      if WOFF.woff2?(contents)
+        raise ArgumentError, 'WOFF 2 fonts are not supported'
+      elsif WOFF.woff?(contents)
+        woff = WOFF.new(contents)
+        new(woff.to_sfnt, 0, woff: woff)
+      else
+        new(contents)
+      end
+    end
+
+    # Load a WOFF 1 container.
+    #
+    # @overload from_woff(io)
+    #   @param io [IO] IO to read the container from.
+    # @overload from_woff(path)
+    #   @param path [String, Pathname] Path to the WOFF 1 file.
+    # @return [TTFunk::WOFF]
+    def self.from_woff(io_or_path)
+      WOFF.open(io_or_path)
     end
 
     # Load a font from a resource file.
@@ -143,11 +168,27 @@ module TTFunk
       io_or_path.binread
     end
 
-    # @param contents [String] binary string containg the font data
+    # @param contents [String] binary string containing the font data
     # @param offset [Integer] offset at which the font data starts
-    def initialize(contents, offset = 0)
+    # @param woff [TTFunk::WOFF, nil] source WOFF 1 container
+    def initialize(contents, offset = 0, woff: nil)
+      @woff = woff
       @contents = StringIO.new(contents)
       @directory = Directory.new(@contents, offset)
+    end
+
+    # WOFF metadata block, when available.
+    #
+    # @return [String, nil]
+    def woff_metadata
+      woff&.metadata
+    end
+
+    # WOFF private data block, when available.
+    #
+    # @return [String, nil]
+    def woff_private_data
+      woff&.private_data
     end
 
     # Glyphs ascent as defined for in the font.

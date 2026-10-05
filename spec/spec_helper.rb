@@ -9,4 +9,5 @@ Dir[File.expand_path('support/**/*.rb', __dir__)].sort.each { |f| require f }
 
 RSpec.configure do |config|
   config.include(PathHelpers)
+  config.include(WoffHelpers)
 end
