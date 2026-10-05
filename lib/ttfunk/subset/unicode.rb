@@ -14,6 +14,7 @@ module TTFunk
       def initialize(original)
         super
         @subset = Set.new
+        @uvs = Set.new
         use(SPACE_CHAR)
       end
 
@@ -31,12 +32,15 @@ module TTFunk
         @subset.each_with_object({}) { |code, map| map[code] = code }
       end
 
-      # Add a character to subset.
+      # Add a character to subset. A character can be followed by a variation
+      # selector. In this case the pair is added to the subset as a Unicode
+      # Variation Sequence. The selector itself is not added as a character.
       #
-      # @param character [Integer] Unicode codepoint
+      # @param characters [Array<Integer>] Unicode codepoints
       # @return [void]
-      def use(character)
-        @subset << character
+      def use(*characters)
+        @subset << characters.first
+        @uvs << characters.first(2) if characters.size > 1
       end
 
       # Can this subset include the character?
@@ -74,7 +78,17 @@ module TTFunk
                 map[code] = unicode_cmap[code]
               end
 
-            TTFunk::Table::Cmap.encode(mapping, :unicode)
+            uvs_mapping =
+              if variation_cmap
+                @uvs.each_with_object({}) do |(code, selector), map|
+                  glyph_id = variation_cmap[code, selector]
+                  # Unsupported variation sequences are skipped. Default UVS entries
+                  # map to glyph 0 and are preserved as such.
+                  map[[code, selector]] = glyph_id if glyph_id
+                end
+              end
+
+            TTFunk::Table::Cmap.encode(mapping, :unicode, uvs_mapping)
           end
       end
 
@@ -83,7 +97,17 @@ module TTFunk
       #
       # @return [Array<Integer>]
       def original_glyph_ids
-        ([0] + @subset.map { |code| unicode_cmap[code] }).uniq.sort
+        uvs_glyph_ids =
+          if variation_cmap
+            @uvs.map { |(code, selector)| variation_cmap[code, selector] }
+          else
+            []
+          end
+
+        ([0] + @subset.map { |code| unicode_cmap[code] } + uvs_glyph_ids)
+          .compact
+          .uniq
+          .sort
       end
     end
   end

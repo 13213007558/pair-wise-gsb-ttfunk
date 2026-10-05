@@ -78,6 +78,13 @@ module TTFunk
         @unicode_cmap ||= @original.cmap.unicode.first
       end
 
+      # Get the Unicode Variation Sequences cmap from the original font.
+      #
+      # @return [TTFunk::Table::Cmap::Subtable, nil]
+      def variation_cmap
+        @variation_cmap ||= @original.cmap.variation
+      end
+
       # Get glyphs in this subset.
       #
       # @return [Hash{Integer => TTFunk::Table::Glyf::Simple,
@@ -117,7 +124,7 @@ module TTFunk
       def old_to_new_glyph
         @old_to_new_glyph ||=
           begin
-            charmap = new_cmap_table[:charmap]
+            charmap = new_cmap_table[:charmap].merge(new_cmap_table[:uvs] || {})
             old_to_new =
               charmap.each_with_object(0 => 0) do |(_, ids), map|
                 map[ids[:old]] = ids[:new]

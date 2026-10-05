@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* Unicode Variation Sequences support
+
+  `cmap` format 14 tables can be read and encoded now. Unicode subsets
+  accept character sequences of a base character and a variation selector.
+
 ### Fixed
 
 * `maxp` table encoding

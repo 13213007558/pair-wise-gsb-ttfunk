@@ -35,6 +35,7 @@ module TTFunk
           # Windows support
           unicode: { platform_id: 3, encoding_id: 1 }.freeze,
           unicode_ucs4: { platform_id: 3, encoding_id: 10 }.freeze,
+          unicode_uvs: { platform_id: 0, encoding_id: 5 }.freeze,
         }.freeze
 
         # Encode encoding record.
@@ -43,6 +44,10 @@ module TTFunk
         #   used encoding, values are Unicode code points.
         # @param encoding [Symbol] - one of the encodign mapping in
         #   {ENCODING_MAPPINGS}
+        # @param offset [Integer] - offset of the subtable from the beginning
+        #   of the cmap table.
+        # @param format_options [Hash] - additional options for format-specific
+        #   encoders.
         # @return [Hash]
         #   * `:platform_id` (<tt>Integer</tt>) - Platform ID of this encoding record.
         #   * `:encoding_id` (<tt>Integer</tt>) - Encodign ID of this encoding record.
@@ -53,7 +58,7 @@ module TTFunk
         #     encoding record, values are hashes:
         #     * `:new` - new glyph ID.
         #     * `:old` - glyph ID in the original font.
-        def self.encode(charmap, encoding)
+        def self.encode(charmap, encoding, offset = 12, **format_options)
           case encoding
           when :mac_roman
             result = Format00.encode(charmap)
@@ -61,6 +66,8 @@ module TTFunk
             result = Format04.encode(charmap)
           when :unicode_ucs4
             result = Format12.encode(charmap)
+          when :unicode_uvs
+            result = Format14.encode(charmap, **format_options)
           else
             raise NotImplementedError,
               "encoding #{encoding.inspect} is not supported"
@@ -75,7 +82,7 @@ module TTFunk
             subtable: [
               mapping[:platform_id],
               mapping[:encoding_id],
-              12,
+              offset,
               result[:subtable],
             ].pack('nnNA*'),
           )
@@ -97,6 +104,7 @@ module TTFunk
             when 6 then extend(TTFunk::Table::Cmap::Format06)
             when 10 then extend(TTFunk::Table::Cmap::Format10)
             when 12 then extend(TTFunk::Table::Cmap::Format12)
+            when 14 then extend(TTFunk::Table::Cmap::Format14)
             end
 
             parse_cmap!
@@ -141,3 +149,4 @@ require_relative 'format04'
 require_relative 'format06'
 require_relative 'format10'
 require_relative 'format12'
+require_relative 'format14'
