@@ -273,6 +273,20 @@ module TTFunk
       @sbix ||= TTFunk::Table::Sbix.new(self)
     end
 
+    # Color Bitmap Location (`CBLC`) table
+    #
+    # @return [TTFunk::Table::Cblc, nil]
+    def color_bitmap_locations
+      @color_bitmap_locations ||= TTFunk::Table::Cblc.new(self)
+    end
+
+    # Color Bitmap Data (`CBDT`) table
+    #
+    # @return [TTFunk::Table::Cbdt, nil]
+    def color_bitmap_data
+      @color_bitmap_data ||= TTFunk::Table::Cbdt.new(self)
+    end
+
     # Compact Font Format (`CFF `) table
     #
     # @return [Table::Table::Cff, nil]
@@ -329,4 +343,6 @@ require_relative 'ttfunk/table/name'
 require_relative 'ttfunk/table/os2'
 require_relative 'ttfunk/table/post'
 require_relative 'ttfunk/table/sbix'
+require_relative 'ttfunk/table/cblc'
+require_relative 'ttfunk/table/cbdt'
 require_relative 'ttfunk/table/vorg'
