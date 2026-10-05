@@ -29,6 +29,7 @@ require_relative 'ttfunk/one_based_array'
 # * OpenType fonts (otf), with both TrueType and CFF glyph outlines
 # * DFont resources (dfont)
 # * TrueType Collections (ttc)
+# * Web Open Font Format (woff), version 1.0
 #
 # While not all TrueType and OpenType tables are implemented the most common
 # ones are.
@@ -57,7 +58,13 @@ module TTFunk
     #   @param path [String, Pathname] Path to file to read the font from.
     #   @return [TTFunk::File]
     def self.open(io_or_path)
-      new(verify_and_read(io_or_path))
+      contents = verify_and_read(io_or_path)
+
+      if contents[0, 4] == WOFF::SIGNATURE
+        WOFF::File.new(contents)
+      else
+        new(contents)
+      end
     end
 
     # Load a font from a resource file.
@@ -330,3 +337,4 @@ require_relative 'ttfunk/table/os2'
 require_relative 'ttfunk/table/post'
 require_relative 'ttfunk/table/sbix'
 require_relative 'ttfunk/table/vorg'
+require_relative 'ttfunk/woff'

@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* WOFF 1.0 support
+
+  WOFF 1.0 containers are decoded transparently: `TTFunk::File.open` detects
+  them and reassembles the wrapped font into a plain SFNT that can be read
+  and subset like any other font. Optional WOFF metadata and private data
+  blocks are exposed on the font object. Directory overlaps, decompressed
+  length mismatches, and table checksum mismatches are reported with the
+  offending table tag.
+
 ### Fixed
 
 * `maxp` table encoding
