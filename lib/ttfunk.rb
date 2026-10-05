@@ -280,6 +280,27 @@ module TTFunk
       @cff ||= TTFunk::Table::Cff.new(self)
     end
 
+    # Compact Font Format 2 (`CFF2`) table
+    #
+    # @return [TTFunk::Table::Cff2, nil]
+    def cff2
+      @cff2 ||= TTFunk::Table::Cff2.new(self)
+    end
+
+    # Font Variations (`fvar`) table
+    #
+    # @return [TTFunk::Table::Fvar, nil]
+    def font_variations
+      @font_variations ||= TTFunk::Table::Fvar.new(self)
+    end
+
+    # Axis Variations (`avar`) table
+    #
+    # @return [TTFunk::Table::Avar, nil]
+    def axis_variations
+      @axis_variations ||= TTFunk::Table::Avar.new(self)
+    end
+
     # Vertical Origin (`VORG`) table
     #
     # @return [TTFunk::Table::Vorg, nil]
@@ -302,11 +323,13 @@ module TTFunk
 
     # Find glyph by its index.
     #
-    # @return [TTFunk::Table::Cff::Charstring] if it's a CFF-based OpenType font
+    # @return [TTFunk::Table::Cff::Path] if it's a CFF or CFF2-based OpenType font
     # @return [TTFunk::Table::Glyf::Simple, TTFunk::Table::Glyf::Compound]
     #   if it's a TrueType font
     def find_glyph(glyph_id)
-      if cff.exists?
+      if cff2.exists?
+        cff2.path(glyph_id)
+      elsif cff.exists?
         cff.top_index[0].charstrings_index[glyph_id].glyph
       else
         glyph_outlines.for(glyph_id)
@@ -316,6 +339,9 @@ module TTFunk
 end
 
 require_relative 'ttfunk/table/cff'
+require_relative 'ttfunk/table/cff2'
+require_relative 'ttfunk/table/avar'
+require_relative 'ttfunk/table/fvar'
 require_relative 'ttfunk/table/cmap'
 require_relative 'ttfunk/table/dsig'
 require_relative 'ttfunk/table/glyf'

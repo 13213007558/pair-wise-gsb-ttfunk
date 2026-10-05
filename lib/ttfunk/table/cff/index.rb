@@ -119,7 +119,7 @@ module TTFunk
         def parse!
           @entry_cache = {}
 
-          num_entries = read(2, 'n').first
+          num_entries = read(index_count_size, index_count_unpack).first
 
           if num_entries.zero?
             @length = 2
@@ -151,6 +151,14 @@ module TTFunk
         def unpack_offset(offset_data, offset_size)
           padding = "\x00" * (4 - offset_size)
           (padding + offset_data).unpack1('N')
+        end
+
+        def index_count_size
+          2
+        end
+
+        def index_count_unpack
+          'n'
         end
       end
     end

@@ -53,28 +53,33 @@ module TTFunk
         # @param top_dict [TTFunk::Table:Cff::TopDict]
         # @param font_dict [TTFunk::Table:Cff::FontDict]
         # @param raw [String]
-        def initialize(glyph_id, top_dict, font_dict, raw)
+        def initialize(glyph_id, top_dict, font_dict, raw, cff2: false)
           @glyph_id = glyph_id
           @top_dict = top_dict
           @font_dict = font_dict
           @raw = raw
+          @cff2 = cff2
 
-          default_width_x = (@font_dict || @top_dict).private_dict.default_width_x
+          unless @cff2
+            default_width_x = (@font_dict || @top_dict).private_dict.default_width_x
 
-          @nominal_width_x = (@font_dict || @top_dict).private_dict.nominal_width_x
+            @nominal_width_x = (@font_dict || @top_dict).private_dict.nominal_width_x
+          end
 
-          @subrs = (@font_dict || @top_dict).private_dict.subr_index
-          @gsubrs = @top_dict.cff.global_subr_index
+          dict = @font_dict || @top_dict
+          @subrs = dict.respond_to?(:private_dict) ? dict.private_dict&.subr_index : nil
+          @gsubrs = @top_dict.respond_to?(:cff) ? @top_dict.cff&.global_subr_index : nil
           @subrs_bias = @subrs.bias if @subrs
           @gsubrs_bias = @gsubrs.bias if @gsubrs
 
           @stack = []
-          @data = raw.bytes
+          @data = raw.respond_to?(:bytes) ? raw.bytes : raw
+          @call_frames = []
           @index = 0
           @n_stems = 0
           @have_width = false
           @open = false
-          @width = default_width_x
+          @width = default_width_x unless @cff2
           @x = 0
           @y = 0
         end
@@ -83,7 +88,7 @@ module TTFunk
         #
         # @return [TTFunk::Table::Cff::Path]
         def path
-          @path || begin
+          @path ||= begin
             @path = Path.new
             parse!
             @path
@@ -119,17 +124,24 @@ module TTFunk
         private
 
         def parse!
-          until @index >= @data.size
+          loop do
+            if @index >= @data.size
+              break unless return_from_subroutine
+              next
+            end
+
             code = @data[@index]
             @index += 1
 
-            # return from callgsubr - do nothing since we inline subrs
-            next if code == 11
+            if code == 11
+              return_from_subroutine
+              next
+            end
 
             if code.between?(32, 246)
               @stack << (code - 139)
-            elsif (m = CODE_MAP[code])
-              __send__(m)
+            elsif (m = code_map[code])
+              send(m)
             elsif code.between?(247, 250)
               b0 = code
               b1 = @data[@index]
@@ -151,6 +163,18 @@ module TTFunk
           bytes = @data[@index, length]
           @index += length
           bytes
+        end
+
+        def code_map
+          CODE_MAP
+        end
+
+        def vsindex
+          raise Error, 'vsindex is only supported in CFF2 charstrings'
+        end
+
+        def blend
+          raise Error, 'blend is only supported in CFF2 charstrings'
         end
 
         def hstem
@@ -242,14 +266,13 @@ module TTFunk
 
         def callsubr
           code_index = @stack.pop + @subrs_bias
-          subr_code = @subrs[code_index].bytes
-          @data[@index, 0] = subr_code
+          enter_subroutine(@subrs[code_index])
         end
 
         def flex_select
           flex_code = @data[@index]
           @index += 1
-          __send__(FLEX_CODE_MAP[flex_code])
+          send(FLEX_CODE_MAP[flex_code])
         end
 
         def flex
@@ -454,8 +477,24 @@ module TTFunk
 
         def callgsubr
           code_index = @stack.pop + @gsubrs_bias
-          subr_code = @gsubrs[code_index].bytes
-          @data[@index, 0] = subr_code
+          enter_subroutine(@gsubrs[code_index])
+        end
+
+        def subr_bytes(subr)
+          subr.respond_to?(:bytes) ? subr.bytes : subr
+        end
+
+        def enter_subroutine(subr)
+          @call_frames << [@data, @index]
+          @data = subr_bytes(subr)
+          @index = 0
+        end
+
+        def return_from_subroutine
+          return false if @call_frames.empty?
+
+          @data, @index = @call_frames.pop
+          true
         end
 
         def vhcurveto

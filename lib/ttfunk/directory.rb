@@ -21,7 +21,7 @@ module TTFunk
 
       @tables = {}
       table_count.times do
-        tag, checksum, offset, length = io.read(16).unpack('a4N*')
+        tag, checksum, offset, length = io.read(16).unpack('a4NNN')
         @tables[tag] = {
           tag: tag,
           checksum: checksum,

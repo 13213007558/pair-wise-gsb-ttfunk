@@ -12,7 +12,7 @@ module TTFunk
         class TooManyOperandsError < StandardError; end
 
         # Single-byte operators.
-        OPERATOR_BZERO = (0..21).freeze
+        OPERATOR_BZERO = (0..27).freeze
         # Bytes indicating an operand.
         OPERAND_BZERO = [28..30, 32..254].freeze
 
@@ -175,7 +175,7 @@ module TTFunk
           operands = []
 
           # @length must be set via the constructor
-          while io.pos < table_offset + length
+          while length.nil? || io.pos < table_offset + length
             case b_zero = read(1, 'C').first
             when WIDE_OPERATOR_BZERO
               operator = decode_wide_operator
