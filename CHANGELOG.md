@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* CBLC/CBDT table support
+
+  Color bitmap fonts can now be read: strikes are selected by ppem and bit
+  depth (with graceful degradation to the closest available strike), and
+  glyph bitmaps along with their horizontal and vertical metrics can be
+  extracted. Continuous and sparse index subtables are supported along with
+  embedded images (PNG/JPEG/TIFF), bit-aligned bitmaps, and composite
+  glyphs.
+
 ### Fixed
 
 * `maxp` table encoding
