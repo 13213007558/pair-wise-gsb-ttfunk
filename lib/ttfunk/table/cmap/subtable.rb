@@ -13,6 +13,7 @@ module TTFunk
       # @see TTFunk::Table::Cmap::Format06
       # @see TTFunk::Table::Cmap::Format10
       # @see TTFunk::Table::Cmap::Format12
+      # @see TTFunk::Table::Cmap::Format14
       class Subtable
         include Reader
 
@@ -46,7 +47,8 @@ module TTFunk
         # @return [Hash]
         #   * `:platform_id` (<tt>Integer</tt>) - Platform ID of this encoding record.
         #   * `:encoding_id` (<tt>Integer</tt>) - Encodign ID of this encoding record.
-        #   * `:subtable` (<tt>String</tt>) - encoded encoding record.
+        #   * `:subtable` (<tt>String</tt>) - encoded encoding record data
+        #     (without the encoding record header).
         #   * `:max_glyph_id` (<tt>Integer</tt>) - maximum glyph ID in this encoding
         #     record.
         #   * `:charmap` (<tt>Hash{Integer => Hash}</tt>) - keys are codepoints in this
@@ -68,16 +70,9 @@ module TTFunk
 
           mapping = ENCODING_MAPPINGS[encoding]
 
-          # platform-id, encoding-id, offset
           result.merge(
             platform_id: mapping[:platform_id],
             encoding_id: mapping[:encoding_id],
-            subtable: [
-              mapping[:platform_id],
-              mapping[:encoding_id],
-              12,
-              result[:subtable],
-            ].pack('nnNA*'),
           )
         end
 
@@ -97,6 +92,7 @@ module TTFunk
             when 6 then extend(TTFunk::Table::Cmap::Format06)
             when 10 then extend(TTFunk::Table::Cmap::Format10)
             when 12 then extend(TTFunk::Table::Cmap::Format12)
+            when 14 then extend(TTFunk::Table::Cmap::Format14)
             end
 
             parse_cmap!
@@ -107,8 +103,9 @@ module TTFunk
         #
         # @return [Boolean]
         def unicode?
-          (platform_id == 3 && [1, 10].include?(encoding_id) && format != 0) ||
-            (platform_id.zero? && format != 0)
+          format != 14 &&
+            ((platform_id == 3 && [1, 10].include?(encoding_id) && format != 0) ||
+              (platform_id.zero? && format != 0))
         end
 
         # Is this encoding record format supported?
@@ -141,3 +138,4 @@ require_relative 'format04'
 require_relative 'format06'
 require_relative 'format10'
 require_relative 'format12'
+require_relative 'format14'

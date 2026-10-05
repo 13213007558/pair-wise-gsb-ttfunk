@@ -138,6 +138,70 @@ describe 'subsetting' do # rubocop: disable RSpec/DescribeClass
     expect(format04.code_map[0xFFFF]).to eq(0)
   end
 
+context 'with variation sequences' do
+  # M+ 1p includes a cmap format 14 table with variation sequences for
+  # U+7259 (base glyph 269):
+  # * U+7259 U+E0100 maps to the default glyph
+  # * U+7259 U+E0101 maps to glyph 268
+  let(:font) { TTFunk::File.open(test_font('Mplus1p')) }
+  let(:subset) { TTFunk::Subset.for(font, :unicode) }
+  let(:new_font) { TTFunk::File.new(subset.encode) }
+
+  it 'knows which variation sequences it includes' do
+    subset.use(0x7259, 0xE0101)
+
+    expect(subset.includes?(0x7259, 0xE0101)).to be(true)
+    expect(subset.includes?(0x7259)).to be(false)
+    expect(subset.includes?(0xE0101)).to be(false)
+  end
+
+  it 'preserves non-default variation sequences' do
+    subset.use(0x7259, 0xE0101)
+
+    uvs = new_font.cmap.uvs
+    expect(uvs).not_to be_nil
+    expect(uvs[0x7259, 0xE0101]).to eq(subset.old_to_new_glyph[268])
+    expect(uvs.default_uvs?(0x7259, 0xE0101)).to be(false)
+  end
+
+  it 'includes variation glyphs in the subset' do
+    subset.use(0x7259, 0xE0101)
+
+    expect(subset.original_glyph_ids).to include(268)
+    expect(new_font.maximum_profile.num_glyphs)
+      .to eq(subset.old_to_new_glyph.size)
+  end
+
+  it 'preserves default variation sequences' do
+    subset.use(0x7259, 0xE0100)
+
+    uvs = new_font.cmap.uvs
+    expect(uvs.default_uvs?(0x7259, 0xE0100)).to be(true)
+    expect(uvs[0x7259, 0xE0100]).to be_nil
+
+    # the base character is included and mapped to the default glyph
+    base_glyph = subset.old_to_new_glyph[269]
+    expect(new_font.cmap.unicode.first[0x7259]).to eq(base_glyph)
+  end
+
+  it 'falls back to the base character for unsupported variation sequences' do
+    subset.use(0x7259, 0xFE00)
+
+    # no format 14 record is encoded for the unsupported sequence
+    expect(new_font.cmap.uvs).to be_nil
+
+    # but the base character is still included
+    base_glyph = subset.old_to_new_glyph[269]
+    expect(new_font.cmap.unicode.first[0x7259]).to eq(base_glyph)
+  end
+
+  it 'does not add the variation selector as a character' do
+    subset.use(0x7259, 0xE0101)
+
+    expect(new_font.cmap.unicode.first[0xE0101]).to eq(0)
+  end
+end
+
   it 'sorts records in the name table correctly' do
     font = TTFunk::File.open(test_font('DejaVuSans'))
 

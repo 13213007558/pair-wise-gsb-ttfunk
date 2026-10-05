@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* Unicode Variation Sequences support
+
+  `cmap` format 14 tables are parsed now. Unicode subsets can include
+  variation sequences (a base character along with a variation selector).
+  Both default and non-default UVS mappings are preserved in subset fonts.
+
+
 ### Fixed
 
 * `maxp` table encoding

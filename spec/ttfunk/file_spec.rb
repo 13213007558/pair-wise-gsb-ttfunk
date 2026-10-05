@@ -103,6 +103,13 @@ describe TTFunk::File do
         expect(cmaps.map(&:format)).to eq([4, 4])
       end
 
+it 'extracts the UVS cmap table' do
+  uvs = file.cmap.uvs
+  expect(uvs.format).to eq(14)
+  expect(uvs[0x7259, 0xE0101]).to eq(268)
+  expect(uvs.default_uvs?(0x7259, 0xE0100)).to be(true)
+end
+
       it 'lookups code in cmap format 4 table' do
         cmap_format4 = file.cmap.unicode.first
         expect(cmap_format4.format).to eq(4)

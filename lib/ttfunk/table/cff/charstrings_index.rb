@@ -27,7 +27,7 @@ module TTFunk
 
         def encode_items(charmap)
           charmap
-            .reject { |code, mapping| mapping[:new].zero? && !code.zero? }
+            .reject { |code, mapping| mapping[:new].zero? && !code.is_a?(Array) && !code.zero? }
             .sort_by { |_code, mapping| mapping[:new] }
             .map { |(_code, mapping)| items[mapping[:old]] }
         end

@@ -436,7 +436,7 @@ module TTFunk
           new_cmap_table = subset.new_cmap_table[:charmap]
           code_points = new_cmap_table
             .keys
-            .select { |k| new_cmap_table[k][:new].positive? }
+            .select { |k| k.is_a?(Integer) && new_cmap_table[k][:new].positive? }
             .sort
 
           # "This value depends on which character sets the font supports.

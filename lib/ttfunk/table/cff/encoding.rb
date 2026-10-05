@@ -126,7 +126,7 @@ module TTFunk
 
           codes =
             charmap
-              .reject { |_code, mapping| mapping[:new].zero? }
+              .reject { |code, mapping| code.is_a?(Array) || mapping[:new].zero? }
               .sort_by { |_code, mapping| mapping[:new] }
               .map { |(code, _m)| code }
 
@@ -163,7 +163,7 @@ module TTFunk
         def encode_supplemental(charmap)
           new_entries =
             charmap
-              .reject { |_code, mapping| mapping[:new].zero? }
+              .reject { |code, mapping| code.is_a?(Array) || mapping[:new].zero? }
               .transform_values { |mapping| mapping[:new] }
 
           result = [format_int(:supplemental), new_entries.size].pack('CC')
