@@ -165,12 +165,19 @@ module TTFunk
       @dsig_table ||= TTFunk::Table::Dsig.encode(original.digital_signature)
     end
 
+    def gsub_table
+      if subset.respond_to?(:new_gsub_table)
+        subset.new_gsub_table
+      end
+    end
+
     def tables
       @tables ||= {
         'cmap' => cmap_table[:table],
         'glyf' => glyf_table[:table],
         'loca' => loca_table[:table],
         'kern' => kern_table,
+        'GSUB' => gsub_table,
         'hmtx' => hmtx_table[:table],
         'hhea' => hhea_table,
         'maxp' => maxp_table,

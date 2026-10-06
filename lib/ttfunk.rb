@@ -280,6 +280,13 @@ module TTFunk
       @cff ||= TTFunk::Table::Cff.new(self)
     end
 
+    # Glyph Substitution (`GSUB`) table
+    #
+    # @return [TTFunk::Table::Gsub, nil]
+    def gsub
+      @gsub ||= TTFunk::Table::Gsub.new(self)
+    end
+
     # Vertical Origin (`VORG`) table
     #
     # @return [TTFunk::Table::Vorg, nil]
@@ -319,6 +326,7 @@ require_relative 'ttfunk/table/cff'
 require_relative 'ttfunk/table/cmap'
 require_relative 'ttfunk/table/dsig'
 require_relative 'ttfunk/table/glyf'
+require_relative 'ttfunk/table/gsub'
 require_relative 'ttfunk/table/head'
 require_relative 'ttfunk/table/hhea'
 require_relative 'ttfunk/table/hmtx'

@@ -7,6 +7,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* Shaping-aware font subsets
+
+  A new subset mode (`TTFunk::Subset.for(font, :shaping, script:, language:, features:)`)
+  keeps the glyphs producible by the selected GSUB features (ligatures,
+  contextual substitutions, etc.) in addition to the glyphs directly
+  referenced by characters, so later shaping works on the subset font. The
+  GSUB table is parsed and subsetted accordingly: only the requested
+  script/language and the enabled features are kept, and Coverage, ClassDef,
+  and Lookup data is rewritten with the new glyph IDs. Single, multiple,
+  alternate, ligature, contextual, chaining, and extension lookups are
+  supported; unsupported lookup types raise an error instead of being
+  silently dropped.
+
 ### Fixed
 
 * `maxp` table encoding
