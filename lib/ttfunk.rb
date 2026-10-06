@@ -300,6 +300,34 @@ module TTFunk
         end
     end
 
+    # Font Variations (`fvar`) table of a variable font.
+    #
+    # @return [TTFunk::Table::Fvar, nil]
+    def fvar
+      @fvar ||= TTFunk::Table::Fvar.new(self)
+    end
+
+    # Axis Variations (`avar`) table.
+    #
+    # @return [TTFunk::Table::Avar, nil]
+    def avar
+      @avar ||= TTFunk::Table::Avar.new(self)
+    end
+
+    # Glyph Variations (`gvar`) table.
+    #
+    # @return [TTFunk::Table::Gvar, nil]
+    def gvar
+      @gvar ||= TTFunk::Table::Gvar.new(self)
+    end
+
+    # Control Value Variations (`cvar`) table.
+    #
+    # @return [TTFunk::Table::Cvar, nil]
+    def cvar
+      @cvar ||= TTFunk::Table::Cvar.new(self)
+    end
+
     # Find glyph by its index.
     #
     # @return [TTFunk::Table::Cff::Charstring] if it's a CFF-based OpenType font
@@ -316,6 +344,10 @@ module TTFunk
 end
 
 require_relative 'ttfunk/table/cff'
+require_relative 'ttfunk/table/fvar'
+require_relative 'ttfunk/table/avar'
+require_relative 'ttfunk/table/gvar'
+require_relative 'ttfunk/table/cvar'
 require_relative 'ttfunk/table/cmap'
 require_relative 'ttfunk/table/dsig'
 require_relative 'ttfunk/table/glyf'
@@ -330,3 +362,4 @@ require_relative 'ttfunk/table/os2'
 require_relative 'ttfunk/table/post'
 require_relative 'ttfunk/table/sbix'
 require_relative 'ttfunk/table/vorg'
+require_relative 'ttfunk/variation/instance'

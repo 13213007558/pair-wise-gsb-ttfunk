@@ -29,6 +29,31 @@ puts "descent : #{file.descent}"
 
 For more detailed examples, explore the examples directory.
 
+### Variable font instantiation
+
+A variable TrueType font can be *frozen* at one axis location, producing a
+regular static font. Coordinates outside an axis range are clamped to its
+valid min/max and omitted axes use their default:
+
+```ruby
+require "ttfunk"
+
+file = TTFunk::File.open("variable.ttf")
+instance = TTFunk::Variation::Instance.generate(file, "wght" => 700)
+File.binwrite("variable-bold.ttf", instance[:font])
+
+instance[:location]         #=> { "wght" => 0.5 } normalized, avar-mapped
+instance[:removed_tables]   #=> ["fvar", "avar", "gvar", ...]
+instance[:rewritten_tables] #=> ["glyf", "loca", "hmtx", ...]
+instance[:copied_tables]    #=> ["cmap", "name", ...]
+```
+
+This honors `fvar` normalization (with clamping), the `avar` segment map,
+the `gvar` tuples (with IUP interpolation of omitted points, composite
+glyphs and phantom-point advance widths), and `cvar` control-value deltas.
+If the font contains a variation table that cannot be rebuilt (`MVAR`,
+`HVAR` or `VVAR`), an error is raised instead of dropping it silently.
+
 ## Licensing
 
 Matz's terms for Ruby, GPLv2, or GPLv3. See LICENSE for details.

@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+* Add `TTFunk::Variation::Instance` for instantiating (freezing) a variable
+  TrueType font at a given axis location. It supports `fvar` axis
+  normalization with coordinate clamping, the `avar` segment map, `gvar`
+  tuple interpolation with IUP inference of omitted points (including
+  composite glyphs and phantom-point-driven horizontal metrics), and `cvar`
+  control-value deltas. The resulting font is a static TrueType font with
+  all variation tables removed; unsupported variation tables (`MVAR`,
+  `HVAR`, `VVAR`) raise an error instead of being silently dropped.
+
+  New tables are parsed: `fvar`, `avar`, `gvar` and `cvar`.
+
 ### Fixed
 
 * `maxp` table encoding

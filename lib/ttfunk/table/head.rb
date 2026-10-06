@@ -16,7 +16,8 @@ module TTFunk
 
       # Checksum adjustment.
       # @return [Integer]
-      attr_reader :checksum_adjustment
+      attr_reader :check_sum_adjustment
+      alias checksum_adjustment check_sum_adjustment
 
       # Magic number.
       # @return [Integer] must be `0x5F0F3CF5`
