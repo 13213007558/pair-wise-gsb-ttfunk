@@ -19,6 +19,7 @@ require_relative 'ttfunk/min'
 require_relative 'ttfunk/max'
 require_relative 'ttfunk/sum'
 require_relative 'ttfunk/one_based_array'
+require_relative 'ttfunk/outline_check'
 
 # TTFunk is a TrueType and OpenType font library written in pure ruby. It
 # supports both parsing and encoding of fonts. Also provides limited font
