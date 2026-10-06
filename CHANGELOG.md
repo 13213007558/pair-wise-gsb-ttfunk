@@ -7,6 +7,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* Read-only TrueType outline inspection
+
+  `TTFunk::OutlineInspector` expands simple glyf contours into line and
+  quadratic Bézier segments and reports, computed from the curves
+  themselves rather than the control polygon: true signed area and
+  winding direction of each contour, nesting of outer contours and
+  holes, self-intersections, overlapping edges, and tangent contacts
+  where the fill result is uncertain. Issues carry glyph, contour,
+  segment, and curve parameter locations. The font is never modified;
+  fixing is left to the caller.
+
 ### Fixed
 
 * `maxp` table encoding

@@ -330,3 +330,5 @@ require_relative 'ttfunk/table/os2'
 require_relative 'ttfunk/table/post'
 require_relative 'ttfunk/table/sbix'
 require_relative 'ttfunk/table/vorg'
+
+require_relative 'ttfunk/outline_inspector'

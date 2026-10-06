@@ -29,6 +29,28 @@ puts "descent : #{file.descent}"
 
 For more detailed examples, explore the examples directory.
 
+### Outline inspection
+
+TrueType (glyf) glyphs can be checked for outline defects that break
+filling. The inspector expands contours into line and quadratic Bézier
+segments and computes everything from the curves themselves (never from
+the control polygon): true signed area, winding direction, nesting of
+outer contours and holes, self-intersections, overlapping edges, and
+tangent contacts where the fill result is uncertain. It is read-only;
+fixing anything is left to the caller.
+
+```ruby
+report = TTFunk::OutlineInspector.new(file).inspect_glyph(36)
+puts report
+
+report.issues.each do |issue|
+  puts "#{issue.type}: #{issue.message}"
+  issue.locations.each do |loc|
+    puts "  contour #{loc[:contour]} segment #{loc[:segment]} t=#{loc[:t]}"
+  end
+end
+```
+
 ## Licensing
 
 Matz's terms for Ruby, GPLv2, or GPLv3. See LICENSE for details.
