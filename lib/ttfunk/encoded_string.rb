@@ -118,7 +118,7 @@ module TTFunk
 
       if (placeholder = placeholders[name])
         io.seek(placeholder.position)
-        io.write(value[0..placeholder.length])
+        io.write(value[0...placeholder.length])
         placeholders.delete(name)
       end
     ensure

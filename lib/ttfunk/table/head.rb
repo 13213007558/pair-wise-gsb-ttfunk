@@ -147,7 +147,7 @@ module TTFunk
       private
 
       def parse!
-        @version, @font_revision, @check_sum_adjustment, @magic_number,
+        @version, @font_revision, @checksum_adjustment, @magic_number,
           @flags, @units_per_em, @created, @modified = read(36, 'N4n2q>2')
 
         @x_min, @y_min, @x_max, @y_max = read_signed(4)

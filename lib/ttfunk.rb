@@ -266,6 +266,27 @@ module TTFunk
       @glyph_outlines ||= TTFunk::Table::Glyf.new(self)
     end
 
+    # Font Variations (`fvar`) table
+    #
+    # @return [TTFunk::Table::Fvar, nil]
+    def font_variations
+      @font_variations ||= TTFunk::Table::Fvar.new(self)
+    end
+
+    # Axis Variations (`avar`) table
+    #
+    # @return [TTFunk::Table::Avar, nil]
+    def axis_variations
+      @axis_variations ||= TTFunk::Table::Avar.new(self)
+    end
+
+    # Glyph Variations (`gvar`) table
+    #
+    # @return [TTFunk::Table::Gvar, nil]
+    def glyph_variations
+      @glyph_variations ||= TTFunk::Table::Gvar.new(self)
+    end
+
     # Standard Bitmap Graphics (`sbix`) table
     #
     # @return [TTFunk::Table::Sbix, nil]
@@ -312,13 +333,23 @@ module TTFunk
         glyph_outlines.for(glyph_id)
       end
     end
+
+    # Instantiate this font at a variable-axis location.
+    #
+    # @return [TTFunk::VariableFontInstantiator::Result]
+    def instantiate_variable_font(coordinates)
+      VariableFontInstantiator.new(self, coordinates).instantiate
+    end
   end
 end
 
 require_relative 'ttfunk/table/cff'
 require_relative 'ttfunk/table/cmap'
 require_relative 'ttfunk/table/dsig'
+require_relative 'ttfunk/table/avar'
+require_relative 'ttfunk/table/fvar'
 require_relative 'ttfunk/table/glyf'
+require_relative 'ttfunk/table/gvar'
 require_relative 'ttfunk/table/head'
 require_relative 'ttfunk/table/hhea'
 require_relative 'ttfunk/table/hmtx'
@@ -330,3 +361,4 @@ require_relative 'ttfunk/table/os2'
 require_relative 'ttfunk/table/post'
 require_relative 'ttfunk/table/sbix'
 require_relative 'ttfunk/table/vorg'
+require_relative 'ttfunk/variable_font_instantiator'
