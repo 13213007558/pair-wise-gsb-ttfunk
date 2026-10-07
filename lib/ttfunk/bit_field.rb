@@ -33,7 +33,7 @@ module TTFunk
     # @param pos [Integer]
     # @return [void]
     def off(pos)
-      @value &= (2**Math.log2(value).ceil) - (2**pos) - 1
+      @value &= (2 ** ::Math.log2(value).ceil) - (2**pos) - 1
     end
 
     # Is bit off?

@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* Read-only support for the OpenType `MATH` table
+
+  TTFunk can now read math constants, glyph italics corrections, top accent
+  attachments, and horizontal and vertical glyph variants. The variant selector
+  assembles glyph parts from connector overlap ranges, repeating extenders as
+  needed, and returns glyph placement and final dimensions.
+
 ### Fixed
 
 * `maxp` table encoding

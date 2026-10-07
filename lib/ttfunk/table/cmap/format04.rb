@@ -92,8 +92,8 @@ module TTFunk
             4, 16 + (8 * segcount) + (2 * glyph_indices.length), 0,
           ].pack('nnn')
 
-          search_range = 2 * (2**Integer(Math.log(segcount) / Math.log(2)))
-          entry_selector = Integer(Math.log(search_range / 2) / Math.log(2))
+          search_range = 2 * (2 ** Integer(::Math.log(segcount) / ::Math.log(2)))
+          entry_selector = Integer(::Math.log(search_range / 2) / ::Math.log(2))
           range_shift = (2 * segcount) - search_range
           subtable << [
             segcount * 2, search_range, entry_selector, range_shift,
