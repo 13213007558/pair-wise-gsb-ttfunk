@@ -46,7 +46,7 @@ module TTFunk
       newfont = EncodedString.new
 
       newfont << [
-        original.directory.scaler_type,
+        scaler_type,
         tables.length,
         search_range,
         entry_selector,
@@ -77,6 +77,10 @@ module TTFunk
     end
 
     private
+
+    def scaler_type
+      original.directory.scaler_type
+    end
 
     def optimal_table_order
       OPTIMAL_TABLE_ORDER +

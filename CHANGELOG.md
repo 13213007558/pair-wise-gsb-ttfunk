@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* CFF to TrueType outline conversion
+
+  CFF-based OpenType fonts can now be converted to TrueType fonts with
+  `TTFunk::CffToTtf.convert`. Cubic outlines are converted to quadratic
+  ones with a caller-specified maximum deviation (in font units) that also
+  covers rounding point coordinates to integers. Glyph IDs, character
+  mapping, and horizontal metrics are preserved. CFF hints are not
+  translated to TrueType instructions.
+
 ### Fixed
 
 * `maxp` table encoding
