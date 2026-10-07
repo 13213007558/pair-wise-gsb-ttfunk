@@ -85,8 +85,8 @@ module TTFunk
         # @param table_start [Integer]
         def initialize(file, table_start)
           @file = file
-          @platform_id, @encoding_id, @offset = read(8, 'nnN')
-          @offset += table_start
+          @platform_id, @encoding_id, relative_offset = read(8, 'nnN')
+          @offset = table_start + relative_offset
 
           parse_from(@offset) do
             @format = read(2, 'n').first
