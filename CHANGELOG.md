@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* CFF outline conversion for TrueType output
+
+  CFF-based subsets can now request adaptive cubic-to-quadratic conversion with
+  a caller-provided geometric error budget and per-curve subdivision limit.
+  Generated fonts contain `glyf`, `loca`, and version 1.0 `maxp` tables,
+  preserve `cmap` mappings and horizontal metrics, and omit CFF-specific outline
+  and hint data when conversion is requested.
+
 ### Fixed
 
 * `maxp` table encoding

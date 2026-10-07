@@ -83,13 +83,17 @@ module TTFunk
         # @param new2old_glyph [Hash{Integer => Integer}] keys are new glyph IDs, values
         #   are old glyph IDs.
         # @return [String]
-        def encode(maxp, new2old_glyph)
+        def encode(maxp, new2old_glyph, converted_glyphs = nil, truetype_outlines: false)
           ''.b.tap do |table|
             num_glyphs = new2old_glyph.length
-            table << [maxp.version, num_glyphs].pack('Nn')
+            version = truetype_outlines ? 0x10000 : maxp.version
+            table << [version, num_glyphs].pack('Nn')
 
-            if maxp.version == 0x10000
-              stats = stats_for(maxp, glyphs_from_ids(maxp, new2old_glyph.values))
+            if version == 0x10000
+              selected_glyphs = converted_glyphs&.values
+              selected_glyphs = nil if selected_glyphs&.empty?
+              selected_glyphs ||= glyphs_from_ids(maxp, new2old_glyph.values)
+              stats = stats_for(maxp, selected_glyphs)
 
               table << [
                 stats[:max_points],
@@ -98,12 +102,12 @@ module TTFunk
                 stats[:max_component_contours],
                 # these all come from the fpgm and cvt tables, which
                 # we don't support at the moment
-                maxp.max_zones,
-                maxp.max_twilight_points,
-                maxp.max_storage,
-                maxp.max_function_defs,
-                maxp.max_instruction_defs,
-                maxp.max_stack_elements,
+                truetype_outlines ? 1 : maxp.max_zones,
+                truetype_outlines ? 0 : maxp.max_twilight_points,
+                truetype_outlines ? 0 : maxp.max_storage,
+                truetype_outlines ? 0 : maxp.max_function_defs,
+                truetype_outlines ? 0 : maxp.max_instruction_defs,
+                truetype_outlines ? 0 : maxp.max_stack_elements,
                 stats[:max_size_of_instructions],
                 stats[:max_component_elements],
                 stats[:max_component_depth],

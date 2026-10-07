@@ -89,7 +89,7 @@ module TTFunk
         # @param mapping [Hash{Integer => Integer}] keys are new glyph IDs, values
         #   are old glyph IDs
         # @return [EncodedString]
-        def encode(head, loca, mapping)
+        def encode(head, loca, mapping, glyphs = nil)
           EncodedString.new do |table|
             table <<
               [head.version, head.font_revision].pack('N2') <<
@@ -98,7 +98,7 @@ module TTFunk
                 head.magic_number,
                 head.flags, head.units_per_em,
                 head.created, head.modified,
-                *min_max_values_for(head, mapping),
+                *min_max_values_for(head, mapping, glyphs),
                 head.mac_style, head.lowest_rec_ppem, head.font_direction_hint,
                 loca[:type] || 0, head.glyph_data_format,
               ].pack('Nn2q>2n*')
@@ -121,14 +121,14 @@ module TTFunk
 
         private
 
-        def min_max_values_for(head, mapping)
+        def min_max_values_for(head, mapping, glyphs)
           x_min = Min.new
           x_max = Max.new
           y_min = Min.new
           y_max = Max.new
 
           mapping.each_value do |old_glyph_id|
-            glyph = head.file.find_glyph(old_glyph_id)
+            glyph = glyphs&.fetch(old_glyph_id, nil) || head.file.find_glyph(old_glyph_id)
             next unless glyph
 
             x_min << glyph.x_min

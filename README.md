@@ -27,6 +27,22 @@ puts "ascent  : #{file.ascent}"
 puts "descent : #{file.descent}"
 ```
 
+CFF-based OpenType fonts can be subset as TrueType outlines. The caller supplies
+the maximum geometric error in font units and an optional subdivision limit:
+
+```ruby
+subset.encode(
+  cff_to_truetype: {
+    max_error: 1.0,
+    max_segments: 1024,
+  },
+)
+```
+
+Encoding raises before producing a font if a glyph cannot be represented within
+the requested error and segment limit. CFF hints are not carried into the
+generated `glyf` glyphs.
+
 For more detailed examples, explore the examples directory.
 
 ## Licensing

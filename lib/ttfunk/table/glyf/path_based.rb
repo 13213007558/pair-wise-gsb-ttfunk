@@ -78,6 +78,22 @@ module TTFunk
         def compound?
           false
         end
+
+        # Convert the cubic CFF outline to an encoded simple TrueType glyph.
+        #
+        # @param max_error [Numeric] maximum allowed geometric error in font units
+        # @param max_segments [Integer] maximum quadratic pieces per cubic curve
+        # @return [TTFunk::Table::Glyf::SimpleOutline]
+        def to_simple_glyph(
+          max_error:,
+          max_segments: CubicToQuadratic::DEFAULT_MAX_SEGMENTS_PER_CURVE
+        )
+          SimpleOutline.from_path(
+            path,
+            max_error: max_error,
+            max_segments: max_segments,
+          )
+        end
       end
     end
   end

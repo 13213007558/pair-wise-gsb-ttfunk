@@ -27,6 +27,10 @@ module TTFunk
     # @param options [Hash]
     # @option options :kerning [Boolean] whether to encode Kerning (`kern`)
     #   table.
+    # @option options :cff_to_truetype [true, Hash] convert CFF outlines to
+    #   TrueType outlines. A Hash may contain `:max_error` and `:max_segments`.
+    # @option options :max_error [Numeric] geometric conversion tolerance in
+    #   font units when `:cff_to_truetype` is enabled.
     def initialize(original, subset, options = {})
       @original = original
       @subset = subset
@@ -46,7 +50,7 @@ module TTFunk
       newfont = EncodedString.new
 
       newfont << [
-        original.directory.scaler_type,
+        scaler_type,
         tables.length,
         search_range,
         entry_selector,
@@ -91,7 +95,12 @@ module TTFunk
     end
 
     def glyf_table
-      @glyf_table ||= TTFunk::Table::Glyf.encode(glyphs, new_to_old_glyph, old_to_new_glyph)
+      @glyf_table ||=
+        TTFunk::Table::Glyf.encode(
+          encoded_glyphs,
+          new_to_old_glyph,
+          old_to_new_glyph,
+        )
     end
 
     def loca_table
@@ -103,11 +112,24 @@ module TTFunk
     end
 
     def hhea_table
-      @hhea_table = TTFunk::Table::Hhea.encode(original.horizontal_header, hmtx_table, original, new_to_old_glyph)
+      @hhea_table =
+        TTFunk::Table::Hhea.encode(
+          original.horizontal_header,
+          hmtx_table,
+          original,
+          new_to_old_glyph,
+          converted_glyphs,
+        )
     end
 
     def maxp_table
-      @maxp_table ||= TTFunk::Table::Maxp.encode(original.maximum_profile, new_to_old_glyph)
+      @maxp_table ||=
+        TTFunk::Table::Maxp.encode(
+          original.maximum_profile,
+          new_to_old_glyph,
+          converting_cff? ? converted_glyphs : nil,
+          truetype_outlines: converting_cff?,
+        )
     end
 
     def post_table
@@ -119,7 +141,13 @@ module TTFunk
     end
 
     def head_table
-      @head_table ||= TTFunk::Table::Head.encode(original.header, loca_table, new_to_old_glyph)
+      @head_table ||=
+        TTFunk::Table::Head.encode(
+          original.header,
+          loca_table,
+          new_to_old_glyph,
+          converted_glyphs,
+        )
     end
 
     # "optional" tables. Fonts may omit these if they do not need them.
@@ -158,10 +186,14 @@ module TTFunk
     end
 
     def vorg_table
+      return if converting_cff?
+
       @vorg_table ||= TTFunk::Table::Vorg.encode(original.vertical_origins)
     end
 
     def dsig_table
+      return if converting_cff?
+
       @dsig_table ||= TTFunk::Table::Dsig.encode(original.digital_signature)
     end
 
@@ -189,6 +221,56 @@ module TTFunk
 
     def glyphs
       subset.glyphs
+    end
+
+    def encoded_glyphs
+      converting_cff? ? converted_glyphs : glyphs
+    end
+
+    def converted_glyphs
+      @converted_glyphs ||=
+        if converting_cff?
+          settings = options[:cff_to_truetype]
+          case settings
+          when true then settings = {}
+          when Hash then nil
+          else
+            raise ArgumentError,
+              'cff_to_truetype must be true or a Hash of conversion options'
+          end
+          max_error =
+            settings.fetch(:max_error) do
+              options.fetch(:max_error) do
+                raise ArgumentError,
+                  'max_error is required when converting CFF to TrueType'
+              end
+            end
+          max_segments =
+            settings.fetch(
+              :max_segments,
+              Table::Glyf::CubicToQuadratic::DEFAULT_MAX_SEGMENTS_PER_CURVE,
+            )
+
+          glyphs.transform_values do |glyph|
+            glyph.to_simple_glyph(
+              max_error: max_error,
+              max_segments: max_segments,
+            )
+          end
+        else
+          {}
+        end
+    end
+
+    def converting_cff?
+      @converting_cff ||=
+        original.cff.exists? &&
+          options.key?(:cff_to_truetype) &&
+          options[:cff_to_truetype] != false
+    end
+
+    def scaler_type
+      converting_cff? ? 0x00010000 : original.directory.scaler_type
     end
 
     def new_to_old_glyph

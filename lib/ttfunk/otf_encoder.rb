@@ -12,6 +12,8 @@ module TTFunk
     # in the charstrings index. Return an empty hash here to indicate a glyf
     # table should not be encoded.
     def glyf_table
+      return super if converting_cff?
+
       @glyf_table ||= {}
     end
 
@@ -19,6 +21,8 @@ module TTFunk
     # a loca table. Return an empty hash here to indicate a loca table
     # shouldn't be encoded.
     def loca_table
+      return super if converting_cff?
+
       @loca_table ||= {}
     end
 
@@ -35,11 +39,14 @@ module TTFunk
     end
 
     def tables
-      @tables ||= super.merge(
-        'BASE' => base_table,
-        'VORG' => vorg_table,
-        'CFF ' => cff_table,
-      ).compact
+      return super if converting_cff?
+
+      @tables ||=
+        super.merge(
+          'BASE' => base_table,
+          'VORG' => vorg_table,
+          'CFF ' => cff_table,
+        ).compact
     end
 
     def optimal_table_order
