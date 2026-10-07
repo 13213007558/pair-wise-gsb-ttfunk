@@ -45,7 +45,7 @@ module TTFunk
                 range_firstglyphs << glyph_map[charmap[code]]
                 range_lengths << 1
               else
-                range_lengths.push(range_lengths.pop) + 1
+                range_lengths[-1] += 1
               end
               last_code = code
               last_glyph = glyph_map[charmap[code]]

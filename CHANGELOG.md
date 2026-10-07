@@ -7,7 +7,28 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+* Font merging
+
+  `TTFunk::Merger` supplements a primary TrueType font with glyphs for
+  characters it doesn't cover, taken from fallback fonts. The caller
+  explicitly chooses the source font for each supplemented character; Unicode
+  conflicts raise an error instead of being resolved by guessing. The merged
+  font uses the primary font's units-per-em (fallback outlines and metrics
+  are scaled to it), re-assigns all glyph IDs and character mappings,
+  migrates composite glyph components, and combines global vertical
+  metrics from all contributing fonts as an enclosing envelope. Tables that
+  can't be migrated (layout tables such as GSUB/GPOS/kern, variation
+  tables such as fvar/gvar) are dropped and reported in the result's
+  limitation list. Only glyf-based TrueType fonts are supported.
+
 ### Fixed
+
+* Format 12 `cmap` encoding
+
+  Encoding a format 12 (UCS-4) `cmap` table raised a `TypeError` when
+  extending an existing segment.
 
 * `maxp` table encoding
 

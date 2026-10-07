@@ -29,6 +29,39 @@ puts "descent : #{file.descent}"
 
 For more detailed examples, explore the examples directory.
 
+## Merging fonts
+
+A primary font missing a few characters can be supplemented with glyphs from
+fallback fonts, producing a single TrueType font suitable for embedding:
+
+```ruby
+require 'ttfunk'
+
+merger = TTFunk::Merger.new(TTFunk::File.open('primary.ttf'))
+
+# The caller explicitly chooses the source font for each character.
+# Conflicts (a character already covered by the primary font, or assigned
+# twice) raise an error instead of being resolved by guessing.
+merger.add(0x4E2D, TTFunk::File.open('fallback.ttf')) # 中
+
+result = merger.merge
+result.font        # => binary TrueType font, ready for embedding
+result.charmap     # => { 0x4E2D => glyph_id, ... }
+result.limitations # => unmigratable tables (layout, variations, ...)
+```
+
+The merged font uses the primary font's units-per-em (fallback outlines and
+metrics are scaled to it), re-assigns all glyph IDs and character mappings,
+and migrates composite glyph components along with the glyphs that reference
+them. Global vertical metrics (ascent/descent/line gap) from all contributing
+fonts are combined as an enclosing envelope: the highest ascent, the lowest
+descent, and the largest line gap.
+
+Only glyf-based TrueType fonts are supported. Tables that can't be migrated
+(layout tables such as GSUB/GPOS/kern, variation tables such as fvar/gvar)
+are dropped and reported in the limitation list rather than producing a font
+with broken internal references.
+
 ## Licensing
 
 Matz's terms for Ruby, GPLv2, or GPLv3. See LICENSE for details.
